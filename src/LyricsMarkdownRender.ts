@@ -11,15 +11,12 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private app: App
     private container: HTMLElement
     private player?: Player
+    private currentHL: number = 0
 
-    private seekHandler = (e: MouseEvent) => {
+    private seek = (e: MouseEvent) => {
         let target = e.target as HTMLElement
-        let time = target?.dataset?.time
-        if (time) {
-            let parts = time.split(':')
-            let sec = parseInt(parts[0]) * 60 + parseInt(parts[1])
-            this.player?.seek(sec)
-        }
+        let time = target?.dataset?.time || 0
+        this.player?.seek(time)
     }
 
     constructor(app: App, source: string, container: HTMLElement) {
@@ -27,6 +24,15 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         this.app = app
         this.source = source
         this.container = container
+    }
+
+    private parseTime(time?: string): number {
+        if (time) {
+            let parts = time.split(':')
+            return parseInt(parts[0]) * 60 + parseFloat(parts[1])
+        } else {
+            return 0
+        }
     }
 
     async onload() {
@@ -46,6 +52,34 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         target: playerEl,
                         props: {
                             src,
+                            timeupdate: (timestamp: number) => {
+                                const lyrics = this.container.querySelectorAll(
+                                    '.lyrics-wrapper[data-time]',
+                                )
+                                console.log(lyrics)
+
+                                let find = false
+                                for (let i = 0; i < lyrics.length; i++) {
+                                    let ele = lyrics.item(i) as HTMLElement
+                                    if (
+                                        parseFloat(ele.dataset.time!) >
+                                            timestamp &&
+                                        !find
+                                    ) {
+                                        let index = i - 1 >= 0 ? i - 1 : 0
+                                        lyrics
+                                            .item(index)
+                                            ?.addClass('lyrics-highlighted')
+                                        this.currentHL = index
+                                        find = true
+                                    }
+                                    if (i !== this.currentHL) {
+                                        ele.classList.remove(
+                                            'lyrics-highlighted',
+                                        )
+                                    }
+                                }
+                            },
                         },
                     })
                     fragment.append(playerEl)
@@ -53,7 +87,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
             }
 
             const div = fragment.createDiv()
-            div.addEventListener('click', this.seekHandler)
+            div.addEventListener('click', this.seek)
             // render lyrcis
             let markdown = lines
                 .slice(1)
@@ -62,11 +96,17 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         LyricsMarkdownRender.LYRICS_PARSE_REGEX,
                     )
                     let time = lrc?.groups?.time
-                    let text = lrc?.groups?.text || ''
-                    let timemark = time
-                        ? `<span data-time="${time}" class="lyric-timestamp">\\[${time}\\]</span>`
+                    let text = lrc?.groups?.text
+                    let timestamp = this.parseTime(time)
+                    let timetag = time
+                        ? `<span class="lyrics-timestamp" data-time="${timestamp}">\\[${time}\\]</span>`
                         : ``
-                    let mdLine = lrc ? `${timemark} ${text}` : line
+                    let texttag = text
+                        ? `<span class="lyrics-text">${text}</span>`
+                        : ''
+                    let mdLine = lrc
+                        ? `<span class="lyrics-wrapper" data-time="${timestamp}">${timetag} ${texttag}</span>`
+                        : line
                     return mdLine
                 })
                 .join('\n')

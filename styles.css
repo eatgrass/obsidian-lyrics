@@ -7,12 +7,20 @@ If your plugin does not need CSS, delete this file.
 
 */
 
-.lyric-timestamp {
+.lyrics-timestamp {
     color: var(--text-accent);
     cursor: pointer;
 }
 
-.lyric-timestamp::hover {
+.lyrics-timestamp::hover {
     color: var(--text-accent-hover);
     cursor: pointer;
+}
+
+.lyrics-highlighted {
+    background-color: var(--text-selection);
+}
+
+.lyrics-highlighted .lyrics-text {
+    text-decoration: underline 2px dashed var(--text-accent);
 }

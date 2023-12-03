@@ -1,14 +1,25 @@
 <script lang="ts">
 export let src: string
+export let timeupdate: (time: number) => void
 let player: HTMLAudioElement
-export function seek(time: number) {
-    if (player) {
-        player.currentTime = time
+export let time: number
+export function seek(t: number) {
+    time = t
+}
+const _timeupdate = () => {
+    if (timeupdate) {
+        timeupdate(time)
     }
 }
 </script>
 
-<audio bind:this={player} controlslist="nodownload" {src} controls></audio>
+<audio
+    controlslist="nodownload"
+    {src}
+    controls
+    bind:currentTime={time}
+    on:timeupdate={_timeupdate}
+></audio>
 
 <style>
 </style>
