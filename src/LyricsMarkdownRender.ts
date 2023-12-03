@@ -13,10 +13,12 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private player?: Player
 
     private seekHandler = (e: MouseEvent) => {
-        let target = e.currentTarget as HTMLElement
+        let target = e.target as HTMLElement
         let time = target?.dataset?.time
         if (time) {
-            this.player?.seek(time)
+            let parts = time.split(':')
+            let sec = parseInt(parts[0]) * 60 + parseInt(parts[1])
+            this.player?.seek(sec)
         }
     }
 
@@ -29,54 +31,50 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
 
     async onload() {
         let fragment = new DocumentFragment()
-        this.source.split(/\r?\n/).forEach(async (line, i) => {
-            if (i == 0) {
-                const playerEl = fragment.createDiv()
-                fragment.append(playerEl)
-                let audio = line.match(LyricsMarkdownRender.AUDIO_FILE_REGEX)
-                if (audio) {
-                    this.audioPath = audio.groups?.audio
-                    if (this.audioPath) {
-                        let src = this.app.vault.adapter.getResourcePath(
-                            this.audioPath!,
-                        )
-                        this.player = new Player({
-                            target: playerEl,
-                            props: {
-                                src,
-                            },
-                        })
-                    }
-                }
-            } else {
-                let lrc = line.match(LyricsMarkdownRender.LYRICS_PARSE_REGEX)
-
-                const span = fragment.createDiv()
-                fragment.append(span)
-                if (lrc) {
-                    let time = lrc?.groups?.time || ''
-                    if (time) {
-                        let timeparts = time.split(':')
-                        span.dataset.time = (
-                            parseInt(timeparts[0]) * 60 +
-                            parseInt(timeparts[1])
-                        ).toString()
-
-                        span.addEventListener('click', this.seekHandler)
-                    }
-
-                    MarkdownRenderer.render(
-                        this.app,
-                        `\\[${time}\\] ${lrc.groups?.text || ''}` || '',
-                        span,
-                        '',
-                        this,
+        const playerEl = fragment.createDiv()
+        let lines = this.source.split(/r?\n/)
+        if (lines.length > 0) {
+            // render player
+            let match = lines[0].match(LyricsMarkdownRender.AUDIO_FILE_REGEX)
+            if (match) {
+                this.audioPath = match.groups?.audio
+                if (this.audioPath) {
+                    let src = this.app.vault.adapter.getResourcePath(
+                        this.audioPath!,
                     )
-                } else {
-                    MarkdownRenderer.render(this.app, line, span, '', this)
+                    this.player = new Player({
+                        target: playerEl,
+                        props: {
+                            src,
+                        },
+                    })
+                    fragment.append(playerEl)
                 }
             }
-        })
+
+            const div = fragment.createDiv()
+            div.addEventListener('click', this.seekHandler)
+            // render lyrcis
+            let markdown = lines
+                .slice(1)
+                .map((line) => {
+                    let lrc = line.match(
+                        LyricsMarkdownRender.LYRICS_PARSE_REGEX,
+                    )
+                    let time = lrc?.groups?.time
+                    let text = lrc?.groups?.text || ''
+                    let timemark = time
+                        ? `<span data-time="${time}" class="lyric-timestamp">\\[${time}\\]</span>`
+                        : ``
+                    let mdLine = lrc ? `${timemark} ${text}` : line
+                    return mdLine
+                })
+                .join('\n')
+
+            MarkdownRenderer.render(this.app, markdown, div, '', this)
+            fragment.append(div)
+        }
+
         this.container.append(fragment)
     }
 }
