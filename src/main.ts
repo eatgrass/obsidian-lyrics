@@ -11,9 +11,22 @@ export default class PomodoroTimerPlugin extends Plugin {
                 context: MarkdownPostProcessorContext,
             ) => {
                 context.addChild(
-                    new LyricsMarkdownRender(this.app, source, element),
+                    new LyricsMarkdownRender(
+                        this.app,
+                        source,
+                        element,
+                        context.sourcePath,
+                    ),
                 )
             },
         )
+
+        this.addCommand({
+            id: 'copy-timestamp',
+            name: 'Copy timestamp',
+            callback: () => {
+
+			},
+        })
     }
 }

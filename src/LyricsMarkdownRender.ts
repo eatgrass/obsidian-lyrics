@@ -2,7 +2,7 @@ import { MarkdownRenderChild, MarkdownRenderer, type App } from 'obsidian'
 import Player from './Player.svelte'
 
 export default class LyricsMarkdownRender extends MarkdownRenderChild {
-    static readonly AUDIO_FILE_REGEX = /^audio (?<audio>.*)/i
+    static readonly AUDIO_FILE_REGEX = /^source (?<audio>.*)/i
     static readonly LYRICS_PARSE_REGEX =
         /^\[(?<time>\d{2}:\d{2}\.\d{2,})\](?<text>.*)/
 
@@ -11,25 +11,37 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private app: App
     private container: HTMLElement
     private player?: Player
-    private currentHL: number = 0
+    private currentHL: number = -1
+    private path: string
 
     private seek = (e: MouseEvent) => {
         let target = e.target as HTMLElement
-        let time = target?.dataset?.time || 0
-        this.player?.seek(time)
+        let time = target?.dataset?.time
+        if (time) {
+            this.player?.seek(parseInt(time) / 1000)
+        }
     }
 
-    constructor(app: App, source: string, container: HTMLElement) {
+    constructor(
+        app: App,
+        source: string,
+        container: HTMLElement,
+        path: string,
+    ) {
         super(container)
         this.app = app
         this.source = source
         this.container = container
+        this.path = path
     }
 
     private parseTime(time?: string): number {
         if (time) {
             let parts = time.split(':')
-            return parseInt(parts[0]) * 60 + parseFloat(parts[1])
+            return (
+                parseInt(parts[0]) * 60000 +
+                parseInt((parseFloat(parts[1]) * 1000).toFixed(3))
+            )
         } else {
             return 0
         }
@@ -55,29 +67,27 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                             timeupdate: (timestamp: number) => {
                                 const lyrics = this.container.querySelectorAll(
                                     '.lyrics-wrapper[data-time]',
-                                )
-                                console.log(lyrics)
+                                ) as NodeListOf<HTMLElement>
 
-                                let find = false
-                                for (let i = 0; i < lyrics.length; i++) {
-                                    let ele = lyrics.item(i) as HTMLElement
-                                    if (
-                                        parseFloat(ele.dataset.time!) >
-                                            timestamp &&
-                                        !find
-                                    ) {
-                                        let index = i - 1 >= 0 ? i - 1 : 0
+                                let hl = this.binarySearch(
+                                    lyrics,
+                                    Math.round(timestamp * 1000),
+                                )
+
+                                if (hl !== this.currentHL) {
+                                    if (hl >= 0) {
                                         lyrics
-                                            .item(index)
+                                            .item(hl)
                                             ?.addClass('lyrics-highlighted')
-                                        this.currentHL = index
-                                        find = true
                                     }
-                                    if (i !== this.currentHL) {
-                                        ele.classList.remove(
-                                            'lyrics-highlighted',
-                                        )
+
+                                    if (this.currentHL >= 0) {
+                                        lyrics
+                                            .item(this.currentHL)
+                                            ?.removeClass('lyrics-highlighted')
                                     }
+
+                                    this.currentHL = hl
                                 }
                             },
                         },
@@ -111,10 +121,47 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                 })
                 .join('\n')
 
-            MarkdownRenderer.render(this.app, markdown, div, '', this)
+            MarkdownRenderer.render(this.app, markdown, div, this.path, this)
             fragment.append(div)
         }
 
         this.container.append(fragment)
+    }
+
+    private binarySearch(arr: NodeListOf<HTMLElement>, time: number): number {
+        let left = 0
+        let right = arr.length - 1
+
+        while (left <= right) {
+            const mid = left + Math.floor((right - left) / 2)
+            let mt = Number(arr.item(mid).dataset.time!)
+
+            if (mt == time) {
+                return mid
+            } else if (mt < time) {
+                if (mid < arr.length - 1) {
+                    let next = Number(arr.item(mid + 1).dataset.time!)
+                    if (next > time) {
+                        return mid
+                    } else {
+                        left = mid + 1
+                    }
+                } else {
+                    return mid + 1
+                }
+            } else if (mt > time) {
+                if (mid >= 1) {
+                    let prev = Number(arr.item(mid - 1).dataset.time!)
+                    if (prev <= time) {
+                        return mid - 1
+                    } else {
+                        right = mid - 1
+                    }
+                } else {
+                    return mid
+                }
+            }
+        }
+        return -1
     }
 }
