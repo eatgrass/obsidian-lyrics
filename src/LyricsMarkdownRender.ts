@@ -4,7 +4,7 @@ import Player from './Player.svelte'
 export default class LyricsMarkdownRender extends MarkdownRenderChild {
     static readonly AUDIO_FILE_REGEX = /^source (?<audio>.*)/i
     static readonly LYRICS_PARSE_REGEX =
-        /^\[(?<time>\d{2}:\d{2}\.\d{2,})\](?<text>.*)/
+        /^\[(?<time>\d{2}:\d{2}(\.\d{2,})?)\](?<text>.*)/
 
     private audioPath?: string
     private source: string
