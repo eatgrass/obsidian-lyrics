@@ -4,7 +4,9 @@
 
 ## Description
 
-Enhance your audio player by adding a interactive lyrics display feature. Now, you can conveniently store your audio files, notes, and highlights together
+Enhance your audio player by adding a interactive lyrics display feature.  
+Now you can navigate through the player using the lyrics for a more engaging and organized listening experience.
+It allows you to seamlessly review your audio notes and highlights.
 
 ## Usage
 
