@@ -30,7 +30,6 @@ export default class LyricsSettings extends PluginSettingTab {
         new Setting(containerEl).setName('Auto scroll').addToggle((toggle) => {
             toggle.setValue(this.settings.autoScroll)
             toggle.onChange((value) => {
-                toggle.setValue(value)
                 this.updateSettings({ autoScroll: value })
             })
         })

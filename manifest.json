@@ -3,7 +3,7 @@
 	"name": "Lyrics",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
+	"description": "Enhance the audio player with interacive lyrics",
 	"author": "eatgrass",
 	"authorUrl": "https://github.com/eatgrass",
 	"fundingUrl": "https://www.buymeacoffee.com/eatgrass",
