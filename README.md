@@ -6,7 +6,7 @@ Enhance your audio player by adding a interactive lyrics display feature. Now, y
 
 ## Usage
 
-By simply insert the code block into your note
+By simply inserting the code block into your note
 
 <pre>
 ```lyric
