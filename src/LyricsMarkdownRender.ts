@@ -1,5 +1,12 @@
-import { MarkdownRenderChild, MarkdownRenderer, type App } from 'obsidian'
+import {
+    MarkdownRenderChild,
+    MarkdownRenderer,
+    type App,
+    MarkdownView,
+    type MarkdownPostProcessorContext,
+} from 'obsidian'
 import Player from './Player.svelte'
+import type LyricsPlugin from 'main'
 
 export default class LyricsMarkdownRender extends MarkdownRenderChild {
     static readonly AUDIO_FILE_REGEX = /^source (?<audio>.*)/i
@@ -13,6 +20,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private player?: Player
     private currentHL: number = -1
     private path: string
+    private plugin: LyricsPlugin
 
     private seek = (e: MouseEvent) => {
         let target = e.target as HTMLElement
@@ -23,16 +31,17 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     }
 
     constructor(
-        app: App,
+        plugin: LyricsPlugin,
         source: string,
         container: HTMLElement,
-        path: string,
+        ctx: MarkdownPostProcessorContext,
     ) {
         super(container)
-        this.app = app
+        this.plugin = plugin
+        this.app = plugin.app
         this.source = source
         this.container = container
-        this.path = path
+        this.path = ctx.sourcePath
     }
 
     private parseTime(time?: string): number {
@@ -50,6 +59,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     async onload() {
         let fragment = new DocumentFragment()
         const playerEl = fragment.createDiv()
+        playerEl.addClass('player-wrapper')
         let lines = this.source.split(/r?\n/)
         if (lines.length > 0) {
             // render player
@@ -60,6 +70,9 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                     let src = this.app.vault.adapter.getResourcePath(
                         this.audioPath!,
                     )
+
+                    // add auto-scroll controller
+
                     this.player = new Player({
                         target: playerEl,
                         props: {
@@ -76,9 +89,19 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
 
                                 if (hl !== this.currentHL) {
                                     if (hl >= 0) {
-                                        lyrics
-                                            .item(hl)
-                                            ?.addClass('lyrics-highlighted')
+                                        const hlel = lyrics.item(hl)
+                                        if (hlel) {
+                                            hlel.addClass('lyrics-highlighted')
+                                            if (
+                                                this.plugin.getSettings()
+                                                    .autoScroll
+                                            ) {
+                                                hlel.scrollIntoView({
+                                                    behavior: 'smooth',
+                                                    block: 'center',
+                                                })
+                                            }
+                                        }
                                     }
 
                                     if (this.currentHL >= 0) {

@@ -13,13 +13,15 @@ const _timeupdate = () => {
 }
 </script>
 
-<audio
-    controlslist="nodownload"
-    {src}
-    controls
-    bind:currentTime={time}
-    on:timeupdate={_timeupdate}
-></audio>
+<div class="audio-wrapper">
+    <audio
+        controlslist="nodownload"
+        {src}
+        controls
+        bind:currentTime={time}
+        on:timeupdate={_timeupdate}
+    ></audio>
+</div>
 
 <style>
 </style>

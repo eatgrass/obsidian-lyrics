@@ -7,6 +7,10 @@ If your plugin does not need CSS, delete this file.
 
 */
 
+.block-language-lrc {
+    font-family: var(--font-monospace);
+}
+
 .lyrics-timestamp {
     color: var(--text-accent);
     cursor: pointer;
@@ -23,4 +27,9 @@ If your plugin does not need CSS, delete this file.
 
 .lyrics-highlighted .lyrics-text {
     text-decoration: underline 2px dashed var(--text-accent);
+}
+
+.player-wrapper {
+    position: sticky;
+    top: 0;
 }
