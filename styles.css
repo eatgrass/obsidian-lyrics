@@ -31,6 +31,7 @@ If your plugin does not need CSS, delete this file.
 
 .lyrics-highlighted .lyrics-text {
     background-color: var(--text-selection);
+    border-radius: 5px;
 }
 
 .player-wrapper {
@@ -40,7 +41,7 @@ If your plugin does not need CSS, delete this file.
 
 .lyrics-wrapper {
     display: flex;
-	padding: 3px;
+    padding: 3px;
 }
 
 .lyrics-timestamp {
