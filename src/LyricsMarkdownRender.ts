@@ -23,6 +23,22 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private currentHL: number = -1
     private path: string
     private plugin: LyricsPlugin
+    private autoScroll: boolean
+
+    constructor(
+        plugin: LyricsPlugin,
+        source: string,
+        container: HTMLElement,
+        ctx: MarkdownPostProcessorContext,
+    ) {
+        super(container)
+        this.plugin = plugin
+        this.app = plugin.app
+        this.source = source
+        this.container = container
+        this.path = ctx.sourcePath
+        this.autoScroll = this.plugin.getSettings().autoScroll
+    }
 
     private seek = (e: MouseEvent) => {
         let target = e.target as HTMLElement
@@ -122,21 +138,16 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                 })
         })
 
-        menu.showAtMouseEvent(e)
-    }
+        menu.addItem((item) => {
+            item.setTitle('Auto-scroll')
+                .setIcon('text')
+                .setChecked(this.autoScroll)
+                .onClick(async () => {
+                    this.autoScroll = !this.autoScroll
+                })
+        })
 
-    constructor(
-        plugin: LyricsPlugin,
-        source: string,
-        container: HTMLElement,
-        ctx: MarkdownPostProcessorContext,
-    ) {
-        super(container)
-        this.plugin = plugin
-        this.app = plugin.app
-        this.source = source
-        this.container = container
-        this.path = ctx.sourcePath
+        menu.showAtMouseEvent(e)
     }
 
     private parseTime(time?: string): number {
@@ -218,10 +229,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                                         const hlel = lyrics.item(hl)
                                         if (hlel) {
                                             hlel.addClass('lyrics-highlighted')
-                                            if (
-                                                this.plugin.getSettings()
-                                                    .autoScroll
-                                            ) {
+                                            if (this.autoScroll) {
                                                 hlel.scrollIntoView({
                                                     behavior: 'smooth',
                                                     block: 'center',

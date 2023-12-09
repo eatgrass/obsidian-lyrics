@@ -26,17 +26,5 @@ export default class LyricsPlugin extends Plugin {
                 )
             },
         )
-
-        this.addCommand({
-            id: 'auto-sroll',
-            name: 'Toggle auto-scroll',
-            callback: () => {
-                if (this.settings) {
-                    this.settings?.updateSettings({
-                        autoScroll: !this.getSettings().autoScroll,
-                    })
-                }
-            },
-        })
     }
 }
