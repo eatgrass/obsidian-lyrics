@@ -3,6 +3,8 @@ import {
     MarkdownRenderer,
     type App,
     type MarkdownPostProcessorContext,
+    Menu,
+    MarkdownView,
 } from 'obsidian'
 import Player from './Player.svelte'
 import type LyricsPlugin from 'main'
@@ -26,6 +28,75 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         let time = target?.dataset?.time
         if (time) {
             this.player?.seek(parseInt(time) / 1000)
+        }
+    }
+
+    private contextMenu = (e: MouseEvent) => {
+        let target = e.target as HTMLElement
+        let time = target?.dataset?.time
+        let lyid = target?.dataset?.lyid
+
+        if (time) {
+            const menu = new Menu()
+
+            menu.addItem((item) =>
+                item
+                    .setTitle('Seek')
+                    .setIcon('seek')
+                    .onClick(() => {
+                        if (time) {
+                            this.player?.seek(parseInt(time) / 1000)
+                        }
+                    }),
+            )
+
+            menu.addItem((item) =>
+                item
+                    .setTitle('Edit')
+                    .setIcon('edit')
+                    .onClick(async () => {
+                        const view =
+                            this.plugin.app.workspace.getActiveViewOfType(
+                                MarkdownView,
+                            )
+                        if (view) {
+                            const state = view.getState()
+                            state.mode = 'source'
+                            await view.leaf.setViewState({
+                                type: 'markdown',
+                                state: state,
+                            })
+
+                            const lineCount = view.editor.lineCount()
+
+                            let start = 0
+                            for (let i = 0; i < lineCount; i++) {
+                                const lineText = view.editor.getLine(i)
+                                if (lineText.includes('```lrc')) {
+                                    start = i
+                                    break
+                                }
+                            }
+                            let lineNumber = parseInt(lyid!) + start + 1
+
+                            let lineContent = view.editor.getLine(lineNumber)
+                            view.editor.focus()
+                            view.editor.setCursor(lineNumber, 0)
+                            view.editor.setSelection(
+                                {
+                                    line: lineNumber,
+                                    ch: 0,
+                                },
+                                {
+                                    line: lineNumber,
+                                    ch: lineContent.length,
+                                },
+                            )
+                        }
+                    }),
+            )
+
+            menu.showAtMouseEvent(e)
         }
     }
 
@@ -120,10 +191,11 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
 
             const div = fragment.createDiv()
             div.addEventListener('click', this.seek)
+            div.addEventListener('contextmenu', this.contextMenu)
             // render lyrcis
             let markdown = lines
                 .slice(1)
-                .map((line) => {
+                .map((line, index) => {
                     if (line) {
                         let lrc = line.match(
                             LyricsMarkdownRender.LYRICS_PARSE_REGEX,
@@ -132,7 +204,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         let text = lrc?.groups?.text || line
                         let timestamp = this.parseTime(time)
                         let timetag = time
-                            ? `<span class="lyrics-timestamp" data-time="${timestamp}">${
+                            ? `<span class="lyrics-timestamp" data-time="${timestamp}" data-lyid="${index}">${
                                   time.split('.')[0]
                               }</span>`
                             : `<span class="lyrics-timestamp"> </span>`
