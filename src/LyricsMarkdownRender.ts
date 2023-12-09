@@ -13,6 +13,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     static readonly AUDIO_FILE_REGEX = /^source (?<audio>.*)/i
     static readonly LYRICS_PARSE_REGEX =
         /^\[(?<time>\d{2,}:\d{2}(\.\d{2,})?)\](?<text>.*)/
+    static readonly INTERNAL_LINK_REGEX = /\[\[(?<link>.*)\]\]/
 
     private audioPath?: string
     private source: string
@@ -126,6 +127,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         }
     }
 
+    // FIXME: error handling
     async onload() {
         let fragment = new DocumentFragment()
         const playerEl = fragment.createDiv()
@@ -136,10 +138,40 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
             let match = lines[0].match(LyricsMarkdownRender.AUDIO_FILE_REGEX)
             if (match) {
                 this.audioPath = match.groups?.audio
+                let src: string | null = null
+
+                // resolve audio file path
                 if (this.audioPath) {
-                    let src = this.app.vault.adapter.getResourcePath(
-                        this.audioPath!,
+                    const internalLink = this.audioPath.match(
+                        LyricsMarkdownRender.INTERNAL_LINK_REGEX,
                     )
+                    if (internalLink) {
+                        const link = internalLink.groups?.link
+
+                        if (link) {
+                            const file =
+                                this.plugin.app.metadataCache.getFirstLinkpathDest(
+                                    link,
+                                    '',
+                                )
+                            if (file) {
+                                src = this.app.vault.getResourcePath(file)
+                            }
+                        }
+                    } else {
+                        src = this.app.vault.adapter.getResourcePath(
+                            this.audioPath!,
+                        )
+                    }
+
+                    if (!src) {
+                        fragment.appendText(
+                            `Error: Invalid source ${this.audioPath}.
+							`,
+                        )
+                        this.container.append(fragment)
+                        return
+                    }
 
                     // add auto-scroll controller
 
