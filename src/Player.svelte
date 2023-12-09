@@ -6,6 +6,23 @@ export let time: number
 export function seek(t: number) {
     time = t
 }
+
+export function getTimeStamp(): number {
+    return time
+}
+
+export function play(): void {
+    if (player.paused) {
+        player.play()
+    }
+}
+
+export function pause(): void {
+    if (!player.paused) {
+        player.pause()
+    }
+}
+
 const _timeupdate = () => {
     if (timeupdate) {
         timeupdate(time)
@@ -15,6 +32,7 @@ const _timeupdate = () => {
 
 <div class="audio-wrapper">
     <audio
+        bind:this={player}
         controlslist="nodownload"
         {src}
         controls

@@ -34,71 +34,95 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
 
     private contextMenu = (e: MouseEvent) => {
         let target = e.target as HTMLElement
-        let time = target?.dataset?.time
-        let lyid = target?.dataset?.lyid
+        let time = target?.dataset?.time || target.parentElement?.dataset?.time
+        let lyid = target?.dataset?.lyid || target.parentElement?.dataset?.lyid
+        const menu = new Menu()
 
-        if (time) {
-            const menu = new Menu()
+        menu.addItem((item) => {
+            item.setTitle('Play')
+                .setIcon('play')
+                .onClick(async () => {
+                    this.player?.play()
+                })
+        })
 
-            menu.addItem((item) =>
-                item
-                    .setTitle('Seek')
-                    .setIcon('seek')
-                    .onClick(() => {
-                        if (time) {
-                            this.player?.seek(parseInt(time) / 1000)
-                        }
-                    }),
-            )
+        menu.addItem((item) => {
+            item.setTitle('Pause')
+                .setIcon('pause')
+                .onClick(async () => {
+                    this.player?.pause()
+                })
+        })
 
-            menu.addItem((item) =>
-                item
-                    .setTitle('Edit')
-                    .setIcon('edit')
-                    .onClick(async () => {
-                        const view =
-                            this.plugin.app.workspace.getActiveViewOfType(
-                                MarkdownView,
-                            )
-                        if (view) {
-                            const state = view.getState()
-                            state.mode = 'source'
-                            await view.leaf.setViewState({
-                                type: 'markdown',
-                                state: state,
-                            })
+        menu.addItem((item) =>
+            item
+                .setTitle('Seek')
+                .setIcon('seek')
+                .onClick(() => {
+                    if (time) {
+                        this.player?.seek(parseInt(time) / 1000)
+                    }
+                }),
+        )
 
-                            const lineCount = view.editor.lineCount()
-
-                            let start = 0
-                            for (let i = 0; i < lineCount; i++) {
-                                const lineText = view.editor.getLine(i)
-                                if (lineText.includes('```lrc')) {
-                                    start = i
-                                    break
-                                }
+        menu.addItem((item) =>
+            item
+                .setTitle('Edit')
+                .setIcon('edit')
+                .onClick(async () => {
+                    const view =
+                        this.plugin.app.workspace.getActiveViewOfType(
+                            MarkdownView,
+                        )
+                    if (view && lyid) {
+                        const state = view.getState()
+                        state.mode = 'source'
+                        await view.leaf.setViewState({
+                            type: 'markdown',
+                            state: state,
+                        })
+                        const lineCount = view.editor.lineCount()
+                        let start = 0
+                        for (let i = 0; i < lineCount; i++) {
+                            const lineText = view.editor.getLine(i)
+                            if (lineText.includes('```lrc')) {
+                                start = i
+                                break
                             }
-                            let lineNumber = parseInt(lyid!) + start + 2
-
-                            let lineContent = view.editor.getLine(lineNumber)
-                            view.editor.focus()
-                            view.editor.setCursor(lineNumber, 0)
-                            view.editor.setSelection(
-                                {
-                                    line: lineNumber,
-                                    ch: 0,
-                                },
-                                {
-                                    line: lineNumber,
-                                    ch: lineContent.length,
-                                },
-                            )
                         }
-                    }),
-            )
+                        let lineNumber = parseInt(lyid) + start + 2
+                        let lineContent = view.editor.getLine(lineNumber)
+                        view.editor.focus()
+                        view.editor.setCursor(lineNumber, 0)
+                        view.editor.setSelection(
+                            {
+                                line: lineNumber,
+                                ch: 0,
+                            },
+                            {
+                                line: lineNumber,
+                                ch: lineContent.length,
+                            },
+                        )
+                    }
+                }),
+        )
 
-            menu.showAtMouseEvent(e)
-        }
+        menu.addItem((item) => {
+            item.setTitle('Copy current timestamp')
+                .setIcon('copy')
+                .onClick(async () => {
+                    const timestamp = this.player?.getTimeStamp() || 0
+                    const min = Math.floor(timestamp / 60)
+                    const minStr = min < 10 ? `0${min}` : `${min}`
+                    const sec = timestamp % 60
+                    const secStr =
+                        sec < 10 ? `0${sec.toFixed(2)}` : `${sec.toFixed(2)}`
+                    navigator.clipboard.writeText(`[${minStr}:${secStr}]`)
+                })
+        })
+
+        menu.showAtMouseEvent(e)
     }
 
     constructor(
@@ -241,7 +265,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                               }</span>`
                             : `<span class="lyrics-timestamp"> </span>`
                         let texttag = `<span class="lyrics-text">${text}</span>`
-                        return `<span class="lyrics-wrapper" data-time="${timestamp}">${timetag} ${texttag}</span>`
+                        return `<span class="lyrics-wrapper" data-time="${timestamp}" data-lyid="${index}">${timetag} ${texttag}</span>`
                     } else {
                         return ''
                     }
