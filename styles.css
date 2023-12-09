@@ -14,6 +14,14 @@ If your plugin does not need CSS, delete this file.
 .lyrics-timestamp {
     color: var(--text-accent);
     cursor: pointer;
+    width: 5.5rem;
+    display: inline-block;
+    padding: 5px 0;
+}
+
+.lyrics-text {
+    flex: 1;
+    padding: 5px;
 }
 
 .lyrics-timestamp::hover {
@@ -21,15 +29,19 @@ If your plugin does not need CSS, delete this file.
     cursor: pointer;
 }
 
-.lyrics-highlighted {
-    background-color: var(--text-selection);
-}
-
 .lyrics-highlighted .lyrics-text {
-    text-decoration: underline 2px dashed var(--text-accent);
+    background-color: var(--text-selection);
 }
 
 .player-wrapper {
     position: sticky;
     top: 0;
+}
+
+.lyrics-wrapper {
+    display: flex;
+	padding: 3px;
+}
+
+.lyrics-timestamp {
 }

@@ -2,7 +2,6 @@ import {
     MarkdownRenderChild,
     MarkdownRenderer,
     type App,
-    MarkdownView,
     type MarkdownPostProcessorContext,
 } from 'obsidian'
 import Player from './Player.svelte'
@@ -11,7 +10,7 @@ import type LyricsPlugin from 'main'
 export default class LyricsMarkdownRender extends MarkdownRenderChild {
     static readonly AUDIO_FILE_REGEX = /^source (?<audio>.*)/i
     static readonly LYRICS_PARSE_REGEX =
-        /^\[(?<time>\d{2}:\d{2}(\.\d{2,})?)\](?<text>.*)/
+        /^\[(?<time>\d{2,}:\d{2}(\.\d{2,})?)\](?<text>.*)/
 
     private audioPath?: string
     private source: string
@@ -125,24 +124,25 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
             let markdown = lines
                 .slice(1)
                 .map((line) => {
-                    let lrc = line.match(
-                        LyricsMarkdownRender.LYRICS_PARSE_REGEX,
-                    )
-                    let time = lrc?.groups?.time
-                    let text = lrc?.groups?.text
-                    let timestamp = this.parseTime(time)
-                    let timetag = time
-                        ? `<span class="lyrics-timestamp" data-time="${timestamp}">\\[${time}\\]</span>`
-                        : ``
-                    let texttag = text
-                        ? `<span class="lyrics-text">${text}</span>`
-                        : ''
-                    let mdLine = lrc
-                        ? `<span class="lyrics-wrapper" data-time="${timestamp}">${timetag} ${texttag}</span>`
-                        : line
-                    return mdLine
+                    if (line) {
+                        let lrc = line.match(
+                            LyricsMarkdownRender.LYRICS_PARSE_REGEX,
+                        )
+                        let time = lrc?.groups?.time
+                        let text = lrc?.groups?.text || line
+                        let timestamp = this.parseTime(time)
+                        let timetag = time
+                            ? `<span class="lyrics-timestamp" data-time="${timestamp}">${
+                                  time.split('.')[0]
+                              }</span>`
+                            : `<span class="lyrics-timestamp"> </span>`
+                        let texttag = `<span class="lyrics-text">${text}</span>`
+                        return `<span class="lyrics-wrapper" data-time="${timestamp}">${timetag} ${texttag}</span>`
+                    } else {
+                        return ''
+                    }
                 })
-                .join('\n')
+                .join('')
 
             MarkdownRenderer.render(this.app, markdown, div, this.path, this)
             fragment.append(div)
