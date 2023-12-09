@@ -10,10 +10,23 @@ It allows you to seamlessly review your audio notes and highlights.
 
 ## Usage
 
-By simply inserting the [.lrc format](https://en.wikipedia.org/wiki/LRC_(file_format)) lyrics into the code block of your note
+Include an audio source and [.lrc format](https://en.wikipedia.org/wiki/LRC_(file_format)) lyrics in the `lrc` code block.  
+You can specify the source of the audio file either as a filepath or as an internal link.
+
+1. Using an internal link source:
 
 <pre>
-```lyric
+```lrc
+source [[audio_file.mp3]]
+[00:01.00] your .lrc format contents
+[00:02.00] ....
+```
+</pre>
+
+2. Using a filepath source:
+
+<pre>
+```lrc
 source path/to/your_audio_file.mp3
 [00:01.00] your .lrc format contents
 [00:02.00] ....
