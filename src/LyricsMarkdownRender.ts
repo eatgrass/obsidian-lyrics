@@ -77,7 +77,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                                     break
                                 }
                             }
-                            let lineNumber = parseInt(lyid!) + start + 1
+                            let lineNumber = parseInt(lyid!) + start + 2
 
                             let lineContent = view.editor.getLine(lineNumber)
                             view.editor.focus()
