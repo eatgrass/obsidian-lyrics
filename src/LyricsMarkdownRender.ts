@@ -143,6 +143,16 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                 .setIcon('text')
                 .setChecked(this.autoScroll)
                 .onClick(async () => {
+                    const lyrics = this.container.querySelectorAll(
+                        '.lyrics-wrapper[data-time]',
+                    ) as NodeListOf<HTMLElement>
+
+                    if (lyrics.length > 0 && this.currentHL >= 0) {
+                        lyrics.item(this.currentHL).scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                        })
+                    }
                     this.autoScroll = !this.autoScroll
                 })
         })

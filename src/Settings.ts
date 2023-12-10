@@ -12,8 +12,6 @@ export default class LyricsSettings extends PluginSettingTab {
     private settings: Settings
     private plugin: LyrcisPlugin
 
-    // private plugin: LyrcisPlugin
-
     constructor(plugin: LyrcisPlugin, settings: Settings) {
         super(plugin.app, plugin)
         this.plugin = plugin
@@ -27,12 +25,17 @@ export default class LyricsSettings extends PluginSettingTab {
 
     public display() {
         const { containerEl } = this
-        new Setting(containerEl).setName('Auto scroll').addToggle((toggle) => {
-            toggle.setValue(this.settings.autoScroll)
-            toggle.onChange((value) => {
-                this.updateSettings({ autoScroll: value })
+		containerEl.empty()
+
+        new Setting(containerEl)
+            .setName('Auto scroll')
+            .setDesc('Whether enable auto-scroll by default')
+            .addToggle((toggle) => {
+                toggle.setValue(this.settings.autoScroll)
+                toggle.onChange((value) => {
+                    this.updateSettings({ autoScroll: value })
+                })
             })
-        })
     }
 
     public getSettings(): Settings {
