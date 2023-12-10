@@ -5,6 +5,7 @@ let player: HTMLAudioElement
 export let time: number
 export function seek(t: number) {
     time = t
+    play()
 }
 
 export function getTimeStamp(): number {

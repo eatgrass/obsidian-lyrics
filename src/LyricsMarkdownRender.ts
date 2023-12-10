@@ -24,6 +24,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private path: string
     private plugin: LyricsPlugin
     private autoScroll: boolean
+    private sentenceMode: boolean
 
     constructor(
         plugin: LyricsPlugin,
@@ -38,16 +39,53 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         this.container = container
         this.path = ctx.sourcePath
         this.autoScroll = this.plugin.getSettings().autoScroll
+        this.sentenceMode = this.plugin.getSettings().sentenceMode
     }
 
     private seek = (e: MouseEvent) => {
         let target = e.target as HTMLElement
         let time = target?.dataset?.time
         if (time) {
-            this.player?.seek(parseInt(time) / 1000)
+            const sec = parseInt(time) / 1000
+            this.updateTimestamp(sec, true)
+            this.player?.seek(sec)
         }
     }
 
+    private updateTimestamp = (timestamp: number, force: boolean = false) => {
+        const lyrics = this.container.querySelectorAll(
+            '.lyrics-wrapper[data-time]',
+        ) as NodeListOf<HTMLElement>
+
+        let hl = this.binarySearch(lyrics, Math.round(timestamp * 1000))
+
+        if (hl !== this.currentHL) {
+
+            if (this.sentenceMode && !force) {
+                this.player?.pause()
+                return
+            }
+
+            if (hl >= 0) {
+                const hlel = lyrics.item(hl)
+                if (hlel) {
+                    hlel.addClass('lyrics-highlighted')
+                    if (this.autoScroll) {
+                        hlel.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'center',
+                        })
+                    }
+                }
+            }
+
+            if (this.currentHL >= 0) {
+                lyrics.item(this.currentHL)?.removeClass('lyrics-highlighted')
+            }
+
+            this.currentHL = hl
+        }
+    }
     private contextMenu = (e: MouseEvent) => {
         let target = e.target as HTMLElement
         let time = target?.dataset?.time || target.parentElement?.dataset?.time
@@ -140,7 +178,6 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
 
         menu.addItem((item) => {
             item.setTitle('Auto-scroll')
-                .setIcon('text')
                 .setChecked(this.autoScroll)
                 .onClick(async () => {
                     const lyrics = this.container.querySelectorAll(
@@ -154,6 +191,14 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         })
                     }
                     this.autoScroll = !this.autoScroll
+                })
+        })
+
+        menu.addItem((item) => {
+            item.setTitle('Sentence mode')
+                .setChecked(this.sentenceMode)
+                .onClick(async () => {
+                    this.sentenceMode = !this.sentenceMode
                 })
         })
 
@@ -224,39 +269,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         target: playerEl,
                         props: {
                             src,
-                            timeupdate: (timestamp: number) => {
-                                const lyrics = this.container.querySelectorAll(
-                                    '.lyrics-wrapper[data-time]',
-                                ) as NodeListOf<HTMLElement>
-
-                                let hl = this.binarySearch(
-                                    lyrics,
-                                    Math.round(timestamp * 1000),
-                                )
-
-                                if (hl !== this.currentHL) {
-                                    if (hl >= 0) {
-                                        const hlel = lyrics.item(hl)
-                                        if (hlel) {
-                                            hlel.addClass('lyrics-highlighted')
-                                            if (this.autoScroll) {
-                                                hlel.scrollIntoView({
-                                                    behavior: 'smooth',
-                                                    block: 'center',
-                                                })
-                                            }
-                                        }
-                                    }
-
-                                    if (this.currentHL >= 0) {
-                                        lyrics
-                                            .item(this.currentHL)
-                                            ?.removeClass('lyrics-highlighted')
-                                    }
-
-                                    this.currentHL = hl
-                                }
-                            },
+                            timeupdate: this.updateTimestamp,
                         },
                     })
                     fragment.append(playerEl)

@@ -3,9 +3,11 @@ import LyrcisPlugin from 'main'
 
 export interface Settings {
     autoScroll: boolean
+    sentenceMode: boolean
 }
 export const DEFAULT_SETTINGS: Settings = {
     autoScroll: true,
+    sentenceMode: false,
 }
 
 export default class LyricsSettings extends PluginSettingTab {
@@ -25,7 +27,7 @@ export default class LyricsSettings extends PluginSettingTab {
 
     public display() {
         const { containerEl } = this
-		containerEl.empty()
+        containerEl.empty()
 
         new Setting(containerEl)
             .setName('Auto scroll')
@@ -36,6 +38,16 @@ export default class LyricsSettings extends PluginSettingTab {
                     this.updateSettings({ autoScroll: value })
                 })
             })
+
+        new Setting(containerEl)
+        .setName('Sentence mode')
+        .setDesc('Whether enable sentence mode by default')
+        .addToggle((toggle)=> {
+                toggle.setValue(this.settings.sentenceMode)
+                toggle.onChange((value) => {
+                    this.updateSettings({sentenceMode: value })
+                })
+        })
     }
 
     public getSettings(): Settings {
