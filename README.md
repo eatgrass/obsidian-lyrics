@@ -10,6 +10,8 @@ It allows you to seamlessly review your audio notes and highlights.
 
 ## Usage
 
+### Basic
+
 Include an audio source and [.lrc format](<https://en.wikipedia.org/wiki/LRC_(file_format)>) lyrics in the `lrc` code block.  
 You can specify the source of the audio file either as a filepath or as an internal link.
 
@@ -32,6 +34,16 @@ source path/to/your_audio_file.mp3
 [00:02.00] ....
 ```
 </pre>
+
+### Context Menu
+
+In the `Reading View`, right-click on the area where lyrics are displayed to use context menu.
+
+- play/pause audio player
+- toggle auto-scroll 
+- toggle sentence mode
+- seek
+- edit
 
 ## Styling
 
