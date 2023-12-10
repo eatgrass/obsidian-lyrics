@@ -10,7 +10,7 @@ It allows you to seamlessly review your audio notes and highlights.
 
 ## Usage
 
-Include an audio source and [.lrc format](https://en.wikipedia.org/wiki/LRC_(file_format)) lyrics in the `lrc` code block.  
+Include an audio source and [.lrc format](<https://en.wikipedia.org/wiki/LRC_(file_format)>) lyrics in the `lrc` code block.  
 You can specify the source of the audio file either as a filepath or as an internal link.
 
 1. Using an internal link source:
@@ -32,6 +32,22 @@ source path/to/your_audio_file.mp3
 [00:02.00] ....
 ```
 </pre>
+
+## Styling
+
+Customize your own styles by utilizing the CSS classes provided below.
+```html
+<span class="lyrics-wrapper lyrics-highlighted" >
+    <span data-lyid="35" data-time="538120" class="lyrics-timestamp">08:58</span>
+    <span class="lyrics-text">
+        Lyrics Text ...
+    </span >
+</span>
+```
+-  `lyrics-wrapper`: the entire lyrics line.
+- `lyrics-timestamp`: timestamp of the lyrics.
+- `lyrics-text`: text content of the lyrics.
+- `lyrics-highlighted`: mark the current highlighted lyrics.
 
 ---
 
