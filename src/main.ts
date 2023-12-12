@@ -3,7 +3,6 @@ import LyricsSettings, { DEFAULT_SETTINGS, type Settings } from 'Settings'
 import {
     Plugin,
     type MarkdownPostProcessorContext,
-    EditorSuggest,
 } from 'obsidian'
 
 export default class LyricsPlugin extends Plugin {
