@@ -111,7 +111,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         menu.addItem((item) =>
             item
                 .setTitle('Seek')
-                .setIcon('seek')
+                .setIcon('fast-forward')
                 .onClick(() => {
                     if (time) {
                         this.player?.seek(parseInt(time) / 1000)
