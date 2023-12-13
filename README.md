@@ -45,27 +45,30 @@ source path/to/your_audio_file.mp3
 
 In the `Reading View`, right-click on the area where lyrics are displayed to use context menu.
 
-- play/pause audio player
-- toggle auto-scroll 
-- toggle sentence mode
-- seek
-- edit
+-   play/pause audio player
+-   toggle auto-scroll
+-   toggle sentence mode
+-   seek
+-   edit
 
 ## Styling
 
 Customize your own styles by utilizing the CSS classes provided below.
+
 ```html
-<span class="lyrics-wrapper lyrics-highlighted" >
-    <span data-lyid="35" data-time="538120" class="lyrics-timestamp">08:58</span>
+<span class="lyrics-line" data-lyid="36" data-time="84160">
+	<span class="lyrics-timestamp" data-lyid="36" data-time="84160">01:24</span>
     <span class="lyrics-text">
-        Lyrics Text ...
-    </span >
+		<p>Happy birthday.</p>
+	</span>
 </span>
 ```
--  `lyrics-wrapper`: the entire lyrics line.
-- `lyrics-timestamp`: timestamp of the lyrics.
-- `lyrics-text`: text content of the lyrics.
-- `lyrics-highlighted`: mark the current highlighted lyrics.
+
+-   `lyrics-wrapper`: the entire lyrics line.
+-   `lyrics-timestamp`: timestamp of the lyrics.
+-   `lyrics-text`: text content of the lyrics.
+-   `lyrics-highlighted`: mark the current highlighted lyrics.
 
 ---
+
 [<img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="BuyMeACoffee" width="100">](https://www.buymeacoffee.com/eatgrass)
