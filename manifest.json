@@ -1,7 +1,7 @@
 {
 	"id": "lyrics",
 	"name": "Lyrics",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"minAppVersion": "0.15.0",
 	"description": "Enhance the audio player with interacive lyrics",
 	"author": "eatgrass",

@@ -60,7 +60,6 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         let hl = this.binarySearch(lyrics, Math.round(timestamp * 1000))
 
         if (hl !== this.currentHL) {
-
             if (this.sentenceMode && !force) {
                 this.player?.pause()
                 return
@@ -157,6 +156,19 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                                 line: lineNumber,
                                 ch: lineContent.length,
                             },
+                        )
+                        view.editor.scrollIntoView(
+                            {
+                                from: {
+                                    line: lineNumber,
+                                    ch: 0,
+                                },
+                                to: {
+                                    line: lineNumber,
+                                    ch: lineContent.length,
+                                },
+                            },
+                            true,
                         )
                     }
                 }),
@@ -290,13 +302,11 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         let time = lrc?.groups?.time
                         let text = lrc?.groups?.text || line
                         let timestamp = this.parseTime(time)
-                        let timetag = time
-                            ? `<span class="lyrics-timestamp" data-time="${timestamp}" data-lyid="${index}">${
-                                  time.split('.')[0]
-                              }</span>`
-                            : `<span class="lyrics-timestamp"> </span>`
+                        let timeAttr = time ? `data-time="${timestamp}"` : ''
+                        let timeDisplay = time ? time.split('.')[0] : ''
+                        let timetag = `<span class="lyrics-timestamp" ${timeAttr} data-lyid="${index}">${timeDisplay}</span>`
                         let texttag = `<span class="lyrics-text">${text}</span>`
-                        return `<span class="lyrics-wrapper" data-time="${timestamp}" data-lyid="${index}">${timetag} ${texttag}</span>`
+                        return `<span class="lyrics-wrapper" ${timeAttr} data-lyid="${index}">${timetag} ${texttag}</span>`
                     } else {
                         return ''
                     }
