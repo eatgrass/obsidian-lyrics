@@ -44,7 +44,7 @@ If your plugin does not need CSS, delete this file.
     top: 0;
 }
 
-.lyrics-wrapper {
+.lyrics-line {
     display: flex;
     padding: 3px;
 }
