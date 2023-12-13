@@ -9,10 +9,20 @@ import {
 import Player from './Player.svelte'
 import type LyricsPlugin from 'main'
 
+type LrcLine = {
+    timestamp?: number
+    timestr?: string
+    text: string
+}
+
+const DEFAULT_LRC: LrcLine = {
+    text: '',
+    timestr: '',
+}
+
 export default class LyricsMarkdownRender extends MarkdownRenderChild {
     static readonly AUDIO_FILE_REGEX = /^source (?<audio>.*)/i
-    static readonly LYRICS_PARSE_REGEX =
-        /^\[(?<time>\d{2,}:\d{2}(\.\d{2,})?)\](?<text>.*)/
+    static readonly LYRICS_PARSE_REGEX = /^\[(((\d+):)?(\d+):(\d+(\.\d+))?)\](.*)$/
     static readonly INTERNAL_LINK_REGEX = /\[\[(?<link>.*)\]\]/
 
     private audioPath?: string
@@ -42,6 +52,39 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         this.sentenceMode = this.plugin.getSettings().sentenceMode
     }
 
+    static parseLrc(text: string = ''): LrcLine {
+        const lrc: LrcLine = { ...DEFAULT_LRC, text }
+
+        const match = text.match(LyricsMarkdownRender.LYRICS_PARSE_REGEX)
+
+        if (text == '' || !match) {
+            return lrc
+        }
+
+        try {
+
+            let hours = match[3] ? parseInt(match[3],10) : 0
+            let minutes = match[4] ? parseInt(match[4],10) : 0
+            let seconds = match[5] ? Math.round(parseFloat(match[5]) * 1000) / 1000 : 0
+
+            const timestamp = hours * 3600 + minutes * 60 + seconds;
+
+            const inMin = Math.floor(timestamp / 60)
+            const inSec = Math.floor(timestamp % 60)
+
+
+            const minStr = inMin < 10 ? `0${inMin}` : `${inMin}`
+            const secStr = inSec < 10 ? `0${inSec}` : `${inSec}`
+            return {
+                timestamp,
+                timestr: `${minStr}:${secStr}`, //normalize the time string
+                text: match[7],
+            }
+        } catch {
+            return lrc
+        }
+    }
+
     private seek = (e: MouseEvent) => {
         let target = e.target as HTMLElement
         let time = target?.dataset?.time
@@ -52,12 +95,12 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         }
     }
 
-    private updateTimestamp = (timestamp: number, force: boolean = false) => {
+    private updateTimestamp = (sec: number, force: boolean = false) => {
         const lyrics = this.container.querySelectorAll(
             '.lyrics-wrapper[data-time]',
         ) as NodeListOf<HTMLElement>
 
-        let hl = this.binarySearch(lyrics, Math.round(timestamp * 1000))
+        let hl = this.binarySearch(lyrics, Math.round(sec * 1000))
 
         if (hl !== this.currentHL) {
             if (this.sentenceMode && !force) {
@@ -179,12 +222,15 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                 .setIcon('copy')
                 .onClick(async () => {
                     const timestamp = this.player?.getTimeStamp() || 0
-                    const min = Math.floor(timestamp / 60)
-                    const minStr = min < 10 ? `0${min}` : `${min}`
-                    const sec = timestamp % 60
+                    const hours = Math.floor(timestamp / 3600)
+                    const hourStr = hours == 0 ? "" : hours < 10 ? `0${hours}:` : `${hours}:`
+                    const secmode = timestamp % 3600
+                    const minutes = Math.floor(secmode / 60)
+                    const minStr = minutes < 10 ? `0${minutes}` : `${minutes}`
+                    const seconds = secmode % 60
                     const secStr =
-                        sec < 10 ? `0${sec.toFixed(2)}` : `${sec.toFixed(2)}`
-                    navigator.clipboard.writeText(`[${minStr}:${secStr}]`)
+                        seconds < 10 ? `0${seconds.toFixed(2)}` : `${seconds.toFixed(2)}`
+                    navigator.clipboard.writeText(`[${hourStr}${minStr}:${secStr}]`)
                 })
         })
 
@@ -217,19 +263,6 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         menu.showAtMouseEvent(e)
     }
 
-    private parseTime(time?: string): number {
-        if (time) {
-            let parts = time.split(':')
-            return (
-                parseInt(parts[0]) * 60000 +
-                parseInt((parseFloat(parts[1]) * 1000).toFixed(3))
-            )
-        } else {
-            return 0
-        }
-    }
-
-    // FIXME: error handling
     async onload() {
         let fragment = new DocumentFragment()
         const playerEl = fragment.createDiv()
@@ -296,16 +329,13 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                 .slice(1)
                 .map((line, index) => {
                     if (line) {
-                        let lrc = line.match(
-                            LyricsMarkdownRender.LYRICS_PARSE_REGEX,
-                        )
-                        let time = lrc?.groups?.time
-                        let text = lrc?.groups?.text || line
-                        let timestamp = this.parseTime(time)
-                        let timeAttr = time ? `data-time="${timestamp}"` : ''
-                        let timeDisplay = time ? time.split('.')[0] : ''
-                        let timetag = `<span class="lyrics-timestamp" ${timeAttr} data-lyid="${index}">${timeDisplay}</span>`
-                        let texttag = `<span class="lyrics-text">${text}</span>`
+                        const lrc = LyricsMarkdownRender.parseLrc(line)
+
+                        let timeAttr = lrc.timestamp
+                            ? `data-time="${lrc.timestamp * 1000}"`
+                            : ''
+                        let timetag = `<span class="lyrics-timestamp" ${timeAttr} data-lyid="${index}">${lrc.timestr}</span>`
+                        let texttag = `<span class="lyrics-text">${lrc.text}</span>`
                         return `<span class="lyrics-wrapper" ${timeAttr} data-lyid="${index}">${timetag} ${texttag}</span>`
                     } else {
                         return ''
