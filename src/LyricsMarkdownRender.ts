@@ -22,7 +22,8 @@ const DEFAULT_LRC: LrcLine = {
 
 export default class LyricsMarkdownRender extends MarkdownRenderChild {
     static readonly AUDIO_FILE_REGEX = /^source (?<audio>.*)/i
-    static readonly LYRICS_PARSE_REGEX = /^\[(((\d+):)?(\d+):(\d+(\.\d+))?)\](.*)$/
+    static readonly LYRICS_PARSE_REGEX =
+        /^\[(((\d+):)?(\d+):(\d+(\.\d+))?)\](.*)$/
     static readonly INTERNAL_LINK_REGEX = /\[\[(?<link>.*)\]\]/
 
     private audioPath?: string
@@ -62,16 +63,16 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         }
 
         try {
+            let hours = match[3] ? parseInt(match[3], 10) : 0
+            let minutes = match[4] ? parseInt(match[4], 10) : 0
+            let seconds = match[5]
+                ? Math.round(parseFloat(match[5]) * 1000) / 1000
+                : 0
 
-            let hours = match[3] ? parseInt(match[3],10) : 0
-            let minutes = match[4] ? parseInt(match[4],10) : 0
-            let seconds = match[5] ? Math.round(parseFloat(match[5]) * 1000) / 1000 : 0
-
-            const timestamp = hours * 3600 + minutes * 60 + seconds;
+            const timestamp = hours * 3600 + minutes * 60 + seconds
 
             const inMin = Math.floor(timestamp / 60)
             const inSec = Math.floor(timestamp % 60)
-
 
             const minStr = inMin < 10 ? `0${inMin}` : `${inMin}`
             const secStr = inSec < 10 ? `0${inSec}` : `${inSec}`
@@ -223,14 +224,23 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                 .onClick(async () => {
                     const timestamp = this.player?.getTimeStamp() || 0
                     const hours = Math.floor(timestamp / 3600)
-                    const hourStr = hours == 0 ? "" : hours < 10 ? `0${hours}:` : `${hours}:`
+                    const hourStr =
+                        hours == 0
+                            ? ''
+                            : hours < 10
+                              ? `0${hours}:`
+                              : `${hours}:`
                     const secmode = timestamp % 3600
                     const minutes = Math.floor(secmode / 60)
                     const minStr = minutes < 10 ? `0${minutes}` : `${minutes}`
                     const seconds = secmode % 60
                     const secStr =
-                        seconds < 10 ? `0${seconds.toFixed(2)}` : `${seconds.toFixed(2)}`
-                    navigator.clipboard.writeText(`[${hourStr}${minStr}:${secStr}]`)
+                        seconds < 10
+                            ? `0${seconds.toFixed(2)}`
+                            : `${seconds.toFixed(2)}`
+                    navigator.clipboard.writeText(
+                        `[${hourStr}${minStr}:${secStr}]`,
+                    )
                 })
         })
 
@@ -325,26 +335,41 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
             div.addEventListener('click', this.seek)
             div.addEventListener('contextmenu', this.contextMenu)
             // render lyrcis
-            let markdown = lines
-                .slice(1)
-                .map((line, index) => {
+            let markdownLines: HTMLSpanElement[] = await Promise.all(
+                lines.slice(1).map(async (line, index) => {
+                    const lineWrapper = div.createSpan()
                     if (line) {
                         const lrc = LyricsMarkdownRender.parseLrc(line)
-
-                        let timeAttr = lrc.timestamp
-                            ? `data-time="${lrc.timestamp * 1000}"`
-                            : ''
-                        let timetag = `<span class="lyrics-timestamp" ${timeAttr} data-lyid="${index}">${lrc.timestr}</span>`
-                        let texttag = `<span class="lyrics-text">${lrc.text}</span>`
-                        return `<span class="lyrics-wrapper" ${timeAttr} data-lyid="${index}">${timetag} ${texttag}</span>`
-                    } else {
-                        return ''
+                        lineWrapper.className = 'lyrics-wrapper'
+                        lineWrapper.dataset.lyid = `${index}`
+                        const timestampSpan = lineWrapper.createSpan()
+                        timestampSpan.setText(lrc.timestr || '')
+                        const textWrapper = lineWrapper.createSpan()
+                        textWrapper.className = 'lyrics-text'
+                        timestampSpan.className = 'lyrics-timestamp'
+                        timestampSpan.dataset.lyid = `${index}`
+                        if (lrc.timestamp) {
+                            timestampSpan.dataset.time = `${
+                                lrc.timestamp * 1000
+                            }`
+                            lineWrapper.dataset.time = `${lrc.timestamp * 1000}`
+                        }
+                        lineWrapper.append(timestampSpan)
+                        await MarkdownRenderer.render(
+                            this.app,
+                            lrc.text,
+                            textWrapper,
+                            this.path,
+                            this,
+                        )
+                        lineWrapper.append(textWrapper)
                     }
-                })
-                .join('')
 
-            MarkdownRenderer.render(this.app, markdown, div, this.path, this)
-            fragment.append(div)
+                    return lineWrapper
+                }),
+            )
+
+            div.append(...markdownLines)
         }
 
         this.container.append(fragment)
