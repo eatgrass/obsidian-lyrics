@@ -1,9 +1,6 @@
 import LyricsMarkdownRender from 'LyricsMarkdownRender'
 import LyricsSettings, { DEFAULT_SETTINGS, type Settings } from 'Settings'
-import {
-    Plugin,
-    type MarkdownPostProcessorContext,
-} from 'obsidian'
+import { Plugin, type MarkdownPostProcessorContext } from 'obsidian'
 
 export default class LyricsPlugin extends Plugin {
     private settings?: LyricsSettings
@@ -12,8 +9,8 @@ export default class LyricsPlugin extends Plugin {
         return this.settings?.getSettings() || DEFAULT_SETTINGS
     }
 
-            async onload() {
-        const settings = await this.loadData()
+    async onload() {
+        const settings = {...DEFAULT_SETTINGS, ...await this.loadData()}
         this.settings = new LyricsSettings(this, settings)
         this.addSettingTab(this.settings)
 

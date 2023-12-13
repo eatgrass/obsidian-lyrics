@@ -20,9 +20,9 @@ export default class LyricsSettings extends PluginSettingTab {
         this.settings = settings
     }
 
-    public updateSettings(newSettings: Partial<Settings>) {
-        this.settings = { ...DEFAULT_SETTINGS, ...newSettings }
-        this.plugin.saveData(this.settings)
+    public async updateSettings(newSettings: Partial<Settings>) {
+        this.settings = { ...this.settings, ...newSettings }
+        await this.plugin.saveData(this.settings)
     }
 
     public display() {
@@ -40,14 +40,14 @@ export default class LyricsSettings extends PluginSettingTab {
             })
 
         new Setting(containerEl)
-        .setName('Sentence mode')
-        .setDesc('Whether enable sentence mode by default')
-        .addToggle((toggle)=> {
+            .setName('Sentence mode')
+            .setDesc('Whether enable sentence mode by default')
+            .addToggle((toggle) => {
                 toggle.setValue(this.settings.sentenceMode)
                 toggle.onChange((value) => {
-                    this.updateSettings({sentenceMode: value })
+                    this.updateSettings({ sentenceMode: value })
                 })
-        })
+            })
     }
 
     public getSettings(): Settings {
