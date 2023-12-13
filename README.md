@@ -10,6 +10,12 @@ It allows you to seamlessly review your audio notes and highlights.
 
 ## Usage
 
+### Installation
+
+Obsidian Community Plugins
+
+`obsidian://show-plugin?id=lyrics`
+
 ### Basic
 
 Include an audio source and [.lrc format](<https://en.wikipedia.org/wiki/LRC_(file_format)>) lyrics in the `lrc` code block.  
