@@ -24,6 +24,11 @@ If your plugin does not need CSS, delete this file.
     padding: 5px;
 }
 
+.lyrics-text p {
+    padding: 0;
+    margin: 0;
+}
+
 .lyrics-timestamp::hover {
     color: var(--text-accent-hover);
     cursor: pointer;
@@ -39,7 +44,7 @@ If your plugin does not need CSS, delete this file.
     top: 0;
 }
 
-.lyrics-wrapper {
+.lyrics-line {
     display: flex;
     padding: 3px;
 }
