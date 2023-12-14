@@ -358,8 +358,6 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         lineEl.dataset.lyid = `${index}`
                         const timeEl = lineEl.createSpan()
                         timeEl.setText(lrc.timestr || '')
-                        const textEl = lineEl.createSpan()
-                        textEl.className = 'lyrics-text'
                         timeEl.className = 'lyrics-timestamp'
                         timeEl.dataset.lyid = `${index}`
                         if (lrc.timestamp) {
@@ -370,13 +368,11 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         await MarkdownRenderer.render(
                             this.app,
                             lrc.text,
-                            textEl,
+                            lineEl,
                             this.path,
                             this,
                         )
-                        lineEl.append(textEl)
                     }
-
                     return lineEl
                 }),
             )
