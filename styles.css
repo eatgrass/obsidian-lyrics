@@ -30,7 +30,7 @@ If your plugin does not need CSS, delete this file.
     cursor: pointer;
 }
 
-.lyrics-highlighted .lyrics-text {
+.lyrics-highlighted p {
     background-color: var(--text-selection);
     border-radius: 5px;
 }
@@ -43,7 +43,4 @@ If your plugin does not need CSS, delete this file.
 .lyrics-line {
     display: flex;
     padding: 3px;
-}
-
-.lyrics-timestamp {
 }

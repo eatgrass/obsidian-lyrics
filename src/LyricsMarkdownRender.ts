@@ -65,9 +65,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         try {
             let hours = match[3] ? parseInt(match[3], 10) : 0
             let minutes = match[4] ? parseInt(match[4], 10) : 0
-            let seconds = match[5]
-                ? Math.round(parseFloat(match[5]) * 1000) / 1000
-                : 0
+            let seconds = match[5] ? parseFloat(match[5]) : 0
 
             const timestamp = hours * 3600 + minutes * 60 + seconds
 
@@ -361,8 +359,9 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         timeEl.className = 'lyrics-timestamp'
                         timeEl.dataset.lyid = `${index}`
                         if (lrc.timestamp) {
-                            timeEl.dataset.time = `${lrc.timestamp * 1000}`
-                            lineEl.dataset.time = `${lrc.timestamp * 1000}`
+                            const millis = Math.floor(lrc.timestamp * 1000)
+                            timeEl.dataset.time = `${millis}`
+                            lineEl.dataset.time = `${millis}`
                         }
                         lineEl.append(timeEl)
                         await MarkdownRenderer.render(
