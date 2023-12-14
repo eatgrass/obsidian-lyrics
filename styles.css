@@ -19,13 +19,9 @@ If your plugin does not need CSS, delete this file.
     padding: 5px 0;
 }
 
-.lyrics-text {
+.lyrics-line p {
     flex: 1;
     padding: 5px;
-}
-
-.lyrics-text p {
-    padding: 0;
     margin: 0;
 }
 
