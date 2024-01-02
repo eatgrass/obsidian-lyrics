@@ -67,6 +67,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
 
             if (hl >= 0) {
                 const hlel = lyrics.item(hl)
+                console.log(hl, hlel)
                 if (hlel) {
                     hlel.addClass('lyrics-highlighted')
                     if (this.autoScroll) {
@@ -341,7 +342,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         left = mid + 1
                     }
                 } else {
-                    return mid + 1
+                    return arr.length - 1
                 }
             } else if (mt > time) {
                 if (mid >= 1) {
