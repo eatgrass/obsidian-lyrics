@@ -10,7 +10,7 @@ export default class LyricsPlugin extends Plugin {
     }
 
     async onload() {
-        const settings = {...DEFAULT_SETTINGS, ...await this.loadData()}
+        const settings = { ...DEFAULT_SETTINGS, ...(await this.loadData()) }
         this.settings = new LyricsSettings(this, settings)
         this.addSettingTab(this.settings)
 
@@ -25,6 +25,6 @@ export default class LyricsPlugin extends Plugin {
                     new LyricsMarkdownRender(this, source, element, context),
                 )
             },
-        )
+        ).sortOrder = -1000
     }
 }
