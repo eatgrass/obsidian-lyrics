@@ -57,8 +57,10 @@ Customize your own styles by utilizing the CSS classes provided below.
 
 ```html
 <span class="lyrics-line" data-lyid="36" data-time="84160">
-	<span class="lyrics-timestamp" data-lyid="36" data-time="84160">01:24</span>
-	<p>Happy birthday.</p>
+    <span class="lyrics-timestamp" data-lyid="36" data-time="84160">01:24</span>
+    <div class="lyrics-text">
+        <p>Hello Lyrics</p>
+    </div>
 </span>
 ```
 
