@@ -18,6 +18,10 @@ export function play(): void {
     }
 }
 
+export function paused(): boolean {
+    return player.paused
+}
+
 export function pause(): void {
     if (!player.paused) {
         player.pause()

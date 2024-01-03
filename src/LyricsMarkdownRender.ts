@@ -47,12 +47,12 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         let time = target?.dataset?.time
         if (time !== undefined) {
             const sec = parseInt(time) / 1000
-            this.updateTimestamp(sec, true)
             this.player?.seek(sec)
+            this.updateTimestamp(sec)
         }
     }
 
-    private updateTimestamp = (sec: number, force: boolean = false) => {
+    private updateTimestamp = (sec: number) => {
         const lyrics = this.container.querySelectorAll(
             '.lyrics-line[data-time]',
         ) as NodeListOf<HTMLElement>
@@ -60,9 +60,15 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         let hl = this.binarySearch(lyrics, Math.round(sec * 1000))
 
         if (hl !== this.currentHL) {
-            if (this.sentenceMode && !force) {
-                this.player?.pause()
-                return
+            if (this.player) {
+                if (
+                    this.sentenceMode &&
+                    !this.player.paused() &&
+                    this.currentHL != -1
+                ) {
+                    this.player.pause()
+                    return
+                }
             }
 
             if (hl >= 0) {
