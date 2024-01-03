@@ -52,7 +52,7 @@ export default class LrcRenderer extends AbstractLyricsRenderer {
                         path,
                         component,
                     )
-                    from = to
+                    from = to + 1
                     return r
                 }),
             )
