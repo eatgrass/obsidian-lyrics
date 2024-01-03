@@ -7,7 +7,7 @@ import {
 } from 'obsidian'
 import Player from './Player.svelte'
 import LyricsPlugin from 'main'
-import { LyricsParser } from 'parsers'
+import LyricsParser from 'parsers'
 
 export default class LyricsMarkdownRender extends MarkdownRenderChild {
     static readonly AUDIO_FILE_REGEX = /^source (?<audio>.*)/i

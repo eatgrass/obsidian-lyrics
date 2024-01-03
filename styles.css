@@ -41,6 +41,7 @@ If your plugin does not need CSS, delete this file.
 	display: flex;
 	flex-direction: column;
 	flex: 1;
+	padding: 0 0.8rem;
 }
 
 .lyrics-highlighted .lyrics-text{
