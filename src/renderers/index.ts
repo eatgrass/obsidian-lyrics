@@ -1,10 +1,10 @@
 import { type App, type Component } from 'obsidian'
-import { Parser } from 'parsers/parser'
-import { LrcParser } from './lrc'
-import SrtParser from './srt'
+import { AbstractLyricsRenderer } from 'renderers/renderer'
+import LrcRenderer from './lrc'
+import SrtRenderer from './srt'
 
-export default class LyricsParser extends Parser {
-    private PARSERS: Parser[]
+export default class LyricsRenderer extends AbstractLyricsRenderer {
+    private PARSERS: AbstractLyricsRenderer[]
 
     public match(content: string): number {
         let parser = this.resolveParser(content)
@@ -13,10 +13,10 @@ export default class LyricsParser extends Parser {
 
     constructor(app: App) {
         super(app)
-        this.PARSERS = [new LrcParser(app), new SrtParser(app)]
+        this.PARSERS = [new LrcRenderer(app), new SrtRenderer(app)]
     }
 
-    public async parse(
+    public async render(
         content: string,
         container: HTMLDivElement,
         path: string,
@@ -24,11 +24,13 @@ export default class LyricsParser extends Parser {
     ) {
         let parser = this.resolveParser(content)
         if (parser[0]) {
-            parser[0].parse(content, container, path, component)
+            parser[0].render(content, container, path, component)
         }
     }
 
-    private resolveParser(content: string): [Parser | undefined, number] {
+    private resolveParser(
+        content: string,
+    ): [AbstractLyricsRenderer | undefined, number] {
         let max = 0
         let parser
         for (let p of this.PARSERS) {

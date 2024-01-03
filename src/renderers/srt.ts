@@ -1,13 +1,12 @@
-import { MarkdownRenderer, type Component } from "obsidian"
-import { Parser, type LyricsLine } from "parsers/parser"
+import { MarkdownRenderer, type Component } from 'obsidian'
+import { AbstractLyricsRenderer, type LyricsLine } from 'renderers/renderer'
 
-export default class SrtParser extends Parser {
+export default class SrtRenderer extends AbstractLyricsRenderer {
     static readonly SRT_SPLITTER =
         /(\d+)\r?\n(\d{2}:\d{2}:\d{2},\d{3}) --> (\d{2}:\d{2}:\d{2},\d{3})/g
 
-
     public match(content: string): number {
-        const match = content.split(SrtParser.SRT_SPLITTER)
+        const match = content.split(SrtRenderer.SRT_SPLITTER)
         match.shift()
         return this.chunk(match, 4).length
     }
@@ -30,14 +29,14 @@ export default class SrtParser extends Parser {
         return t
     }
 
-    public async parse(
+    public async render(
         content: string,
         container: HTMLDivElement,
         path: string,
         component: Component,
     ) {
         if (content.length > 0) {
-            let blocks = content.split(SrtParser.SRT_SPLITTER)
+            let blocks = content.split(SrtRenderer.SRT_SPLITTER)
 
             let rowCount = 2
             let head = blocks.shift()

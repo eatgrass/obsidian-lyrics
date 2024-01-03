@@ -1,8 +1,12 @@
-import { chunk } from "lodash"
-import { MarkdownRenderer, type App, type Component } from "obsidian"
-import { DEFAULT_LRC, type LyricsLine, Parser } from "parsers/parser"
+import { chunk } from 'lodash'
+import { MarkdownRenderer, type App, type Component } from 'obsidian'
+import {
+    DEFAULT_LRC,
+    type LyricsLine,
+    AbstractLyricsRenderer,
+} from 'renderers/renderer'
 
-export class LrcParser extends Parser {
+export default class LrcRenderer extends AbstractLyricsRenderer {
     static readonly LRC_SPLITTER = /\[(((\d+):)?(\d+):(\d+(\.\d+)?))\]/g
 
     constructor(app: App) {
@@ -10,18 +14,18 @@ export class LrcParser extends Parser {
     }
 
     public match(content: string): number {
-        const s = content.split(LrcParser.LRC_SPLITTER)
+        const s = content.split(LrcRenderer.LRC_SPLITTER)
         s.shift()
         return chunk(s, 7).length
     }
 
-    public async parse(
+    public async render(
         content: string,
         container: HTMLDivElement,
         path: string,
         component: Component,
     ) {
-        let s = content.split(LrcParser.LRC_SPLITTER)
+        let s = content.split(LrcRenderer.LRC_SPLITTER)
         if (s.length > 0) {
             let rowCount = 2
             let head = s.shift()

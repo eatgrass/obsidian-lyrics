@@ -7,7 +7,7 @@ import {
 } from 'obsidian'
 import Player from './Player.svelte'
 import LyricsPlugin from 'main'
-import LyricsParser from 'parsers'
+import LyricsRenderer from 'renderers'
 
 export default class LyricsMarkdownRender extends MarkdownRenderChild {
     static readonly AUDIO_FILE_REGEX = /^source (?<audio>.*)/i
@@ -23,7 +23,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private plugin: LyricsPlugin
     private autoScroll: boolean
     private sentenceMode: boolean
-    private parser: LyricsParser
+    private lyricsRenderer: LyricsRenderer
 
     constructor(
         plugin: LyricsPlugin,
@@ -39,7 +39,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         this.path = ctx.sourcePath
         this.autoScroll = this.plugin.getSettings().autoScroll
         this.sentenceMode = this.plugin.getSettings().sentenceMode
-        this.parser = new LyricsParser(plugin.app)
+        this.lyricsRenderer = new LyricsRenderer(plugin.app)
     }
 
     private seek = (e: MouseEvent) => {
@@ -311,7 +311,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
             div.className = 'lyrics-wrapper'
             // render lyrcis
             if (this.source.length > eol) {
-                this.parser.parse(
+                this.lyricsRenderer.render(
                     this.source.substring(eol + 1),
                     div,
                     this.path,

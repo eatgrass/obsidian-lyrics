@@ -14,7 +14,7 @@ export const DEFAULT_LRC: LyricsLine = {
     rows: 1,
 }
 
-export abstract class Parser {
+export abstract class AbstractLyricsRenderer {
     protected app: App
 
     protected chunk = chunk
@@ -60,7 +60,7 @@ export abstract class Parser {
         return lineEl
     }
 
-    public abstract parse(
+    public abstract render(
         content: string,
         container: HTMLDivElement,
         path: string,
