@@ -45,7 +45,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private seek = (e: MouseEvent) => {
         let target = e.target as HTMLElement
         let time = target?.dataset?.time
-        if (time) {
+        if (time !== undefined) {
             const sec = parseInt(time) / 1000
             this.updateTimestamp(sec, true)
             this.player?.seek(sec)
@@ -153,13 +153,13 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         let start = 0
                         for (let i = 0; i < lineCount; i++) {
                             const lineText = view.editor.getLine(i)
-							// NOTE: can only calculate the first lrc code block position
+                            // NOTE: can only calculate the first lrc code block position
                             if (lineText.includes('```lrc')) {
                                 start = i
                                 break
                             }
                         }
-						let head = this.player ? 2 : 1
+                        let head = this.player ? 2 : 1
                         let lineFrom = head + parseInt(from) + start
                         let lineTo = head + parseInt(to) + start
                         let lineContent = view.editor.getLine(lineTo)
@@ -250,7 +250,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     async onload() {
         let eol = this.source.indexOf('\n')
 
-		// first line: audio source
+        // first line: audio source
         if (this.source.length > 0 && eol >= 0) {
             let sourceLine = this.source.substring(0, eol)
             // render player

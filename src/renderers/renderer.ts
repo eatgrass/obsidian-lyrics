@@ -42,7 +42,7 @@ export abstract class AbstractLyricsRenderer {
             timeEl.setText(line.timestr || '')
             timeEl.addClass('lyrics-timestamp')
             timeEl.dataset.offset = `${from},${to}`
-            if (line.timestamp) {
+            if (line.timestamp !== undefined) {
                 const millis = Math.floor(line.timestamp)
                 timeEl.dataset.time = `${millis}`
                 lineEl.dataset.time = `${millis}`
