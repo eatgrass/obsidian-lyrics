@@ -3,6 +3,7 @@ export let src: string
 export let timeupdate: (time: number) => void
 let player: HTMLAudioElement
 export let time: number
+export let onPlay: () => void
 export function seek(t: number) {
     time = t
     play()
@@ -33,6 +34,12 @@ const _timeupdate = () => {
         timeupdate(time)
     }
 }
+
+const _play = () => {
+    if (onPlay) {
+        onPlay()
+    }
+}
 </script>
 
 <div class="audio-wrapper">
@@ -43,6 +50,7 @@ const _timeupdate = () => {
         controls
         bind:currentTime={time}
         on:timeupdate={_timeupdate}
+        on:play={_play}
     ></audio>
 </div>
 

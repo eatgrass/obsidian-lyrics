@@ -24,6 +24,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private autoScroll: boolean
     private sentenceMode: boolean
     private lyricsRenderer: LyricsRenderer
+    private pauseHl: boolean = false
 
     constructor(
         plugin: LyricsPlugin,
@@ -47,12 +48,12 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         let time = target?.dataset?.time
         if (time !== undefined) {
             const sec = parseInt(time) / 1000
+            this.updateTimestamp(sec, true)
             this.player?.seek(sec)
-            this.updateTimestamp(sec)
         }
     }
 
-    private updateTimestamp = (sec: number) => {
+    private updateTimestamp = (sec: number, seek: boolean = false) => {
         const lyrics = this.container.querySelectorAll(
             '.lyrics-line[data-time]',
         ) as NodeListOf<HTMLElement>
@@ -64,16 +65,26 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                 if (
                     this.sentenceMode &&
                     !this.player.paused() &&
-                    this.currentHL != -1
+                    this.currentHL != -1 &&
+                    !seek
                 ) {
                     this.player.pause()
-                    return
+                    this.pauseHl = true
                 }
+            }
+            this.currentHL = hl
+        }
+
+        if (!this.pauseHl) {
+            if (this.currentHL >= 0) {
+                let hlels = this.container.findAll('.lyrics-highlighted')
+                hlels.forEach((el) => {
+                    el.removeClass('lyrics-highlighted')
+                })
             }
 
             if (hl >= 0) {
                 const hlel = lyrics.item(hl)
-                console.log(hl, hlel)
                 if (hlel) {
                     hlel.addClass('lyrics-highlighted')
                     if (this.autoScroll) {
@@ -84,12 +95,6 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                     }
                 }
             }
-
-            if (this.currentHL >= 0) {
-                lyrics.item(this.currentHL)?.removeClass('lyrics-highlighted')
-            }
-
-            this.currentHL = hl
         }
     }
 
@@ -309,6 +314,9 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         props: {
                             src,
                             timeupdate: this.updateTimestamp,
+                            onPlay: () => {
+                                this.pauseHl = false
+                            },
                         },
                     })
                     fragment.append(playerEl)
