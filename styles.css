@@ -1,10 +1,7 @@
 /*
-
 This CSS file will be included with your plugin, and
 available in the app when your plugin is enabled.
-
 If your plugin does not need CSS, delete this file.
-
 */
 
 .block-language-lrc {
@@ -30,11 +27,6 @@ If your plugin does not need CSS, delete this file.
     cursor: pointer;
 }
 
-.lyrics-highlighted p {
-    background-color: var(--text-selection);
-    border-radius: 5px;
-}
-
 .player-wrapper {
     position: sticky;
     top: 0;
@@ -43,4 +35,16 @@ If your plugin does not need CSS, delete this file.
 .lyrics-line {
     display: flex;
     padding: 3px;
+}
+
+.lyrics-text {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	padding: 0 0.8rem;
+}
+
+.lyrics-highlighted .lyrics-text{
+    background-color: var(--text-selection);
+    border-radius: 5px;
 }

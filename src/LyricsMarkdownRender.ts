@@ -1,29 +1,16 @@
 import {
     MarkdownRenderChild,
-    MarkdownRenderer,
     type App,
     type MarkdownPostProcessorContext,
     Menu,
     MarkdownView,
 } from 'obsidian'
 import Player from './Player.svelte'
-import type LyricsPlugin from 'main'
-
-type LrcLine = {
-    timestamp?: number
-    timestr?: string
-    text: string
-}
-
-const DEFAULT_LRC: LrcLine = {
-    text: '',
-    timestr: '',
-}
+import LyricsPlugin from 'main'
+import LyricsRenderer from 'renderers'
 
 export default class LyricsMarkdownRender extends MarkdownRenderChild {
     static readonly AUDIO_FILE_REGEX = /^source (?<audio>.*)/i
-    static readonly LYRICS_PARSE_REGEX =
-        /^\[(((\d+):)?(\d+):(\d+(\.\d+))?)\](.*)$/
     static readonly INTERNAL_LINK_REGEX = /\[\[(?<link>.*)\]\]/
 
     private audioPath?: string
@@ -36,6 +23,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private plugin: LyricsPlugin
     private autoScroll: boolean
     private sentenceMode: boolean
+    private lyricsRenderer: LyricsRenderer
 
     constructor(
         plugin: LyricsPlugin,
@@ -51,37 +39,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         this.path = ctx.sourcePath
         this.autoScroll = this.plugin.getSettings().autoScroll
         this.sentenceMode = this.plugin.getSettings().sentenceMode
-    }
-
-    static parseLrc(text: string = ''): LrcLine {
-        const lrc: LrcLine = { ...DEFAULT_LRC, text }
-
-        const match = text.match(LyricsMarkdownRender.LYRICS_PARSE_REGEX)
-
-        if (text == '' || !match) {
-            return lrc
-        }
-
-        try {
-            let hours = match[3] ? parseInt(match[3], 10) : 0
-            let minutes = match[4] ? parseInt(match[4], 10) : 0
-            let seconds = match[5] ? parseFloat(match[5]) : 0
-
-            const timestamp = hours * 3600 + minutes * 60 + seconds
-
-            const inMin = Math.floor(timestamp / 60)
-            const inSec = Math.floor(timestamp % 60)
-
-            const minStr = inMin < 10 ? `0${inMin}` : `${inMin}`
-            const secStr = inSec < 10 ? `0${inSec}` : `${inSec}`
-            return {
-                timestamp,
-                timestr: `${minStr}:${secStr}`, //normalize the time string
-                text: match[7],
-            }
-        } catch {
-            return lrc
-        }
+        this.lyricsRenderer = new LyricsRenderer(plugin.app)
     }
 
     private seek = (e: MouseEvent) => {
@@ -109,6 +67,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
 
             if (hl >= 0) {
                 const hlel = lyrics.item(hl)
+                console.log(hl, hlel)
                 if (hlel) {
                     hlel.addClass('lyrics-highlighted')
                     if (this.autoScroll) {
@@ -130,10 +89,10 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
 
     private findParentData(element: HTMLElement | null) {
         while (element && element.className !== 'lyrics-wrapper') {
-            if (element.dataset && element.dataset['lyid']) {
+            if (element.dataset && element.dataset['offset']) {
                 return {
                     time: element.dataset['time'],
-                    lyid: element.dataset['lyid'],
+                    offset: element.dataset['offset'],
                 }
             }
             element = element.parentElement
@@ -182,8 +141,9 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         this.plugin.app.workspace.getActiveViewOfType(
                             MarkdownView,
                         )
-                    if (view && data?.lyid) {
+                    if (view && data?.offset) {
                         const state = view.getState()
+                        let [from, to] = data.offset.split(',')
                         state.mode = 'source'
                         await view.leaf.setViewState({
                             type: 'markdown',
@@ -193,33 +153,36 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         let start = 0
                         for (let i = 0; i < lineCount; i++) {
                             const lineText = view.editor.getLine(i)
+							// NOTE: can only calculate the first lrc code block position
                             if (lineText.includes('```lrc')) {
                                 start = i
                                 break
                             }
                         }
-                        let lineNumber = parseInt(data.lyid) + start + 2
-                        let lineContent = view.editor.getLine(lineNumber)
+						let head = this.player ? 2 : 1
+                        let lineFrom = head + parseInt(from) + start
+                        let lineTo = head + parseInt(to) + start
+                        let lineContent = view.editor.getLine(lineTo)
                         view.editor.focus()
-                        view.editor.setCursor(lineNumber, 0)
+                        view.editor.setCursor(lineFrom, 0)
                         view.editor.setSelection(
                             {
-                                line: lineNumber,
+                                line: lineFrom,
                                 ch: 0,
                             },
                             {
-                                line: lineNumber,
+                                line: lineTo,
                                 ch: lineContent.length,
                             },
                         )
                         view.editor.scrollIntoView(
                             {
                                 from: {
-                                    line: lineNumber,
+                                    line: lineFrom,
                                     ch: 0,
                                 },
                                 to: {
-                                    line: lineNumber,
+                                    line: lineTo,
                                     ch: lineContent.length,
                                 },
                             },
@@ -285,13 +248,17 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     }
 
     async onload() {
-        let fragment = new DocumentFragment()
-        const playerEl = fragment.createDiv()
-        playerEl.addClass('player-wrapper')
-        let lines = this.source.split(/r?\n/)
-        if (lines.length > 0) {
+        let eol = this.source.indexOf('\n')
+
+		// first line: audio source
+        if (this.source.length > 0 && eol >= 0) {
+            let sourceLine = this.source.substring(0, eol)
             // render player
-            let match = lines[0].match(LyricsMarkdownRender.AUDIO_FILE_REGEX)
+            let fragment = new DocumentFragment()
+            const playerEl = fragment.createDiv()
+            playerEl.addClass('player-wrapper')
+
+            let match = sourceLine.match(LyricsMarkdownRender.AUDIO_FILE_REGEX)
             if (match) {
                 this.audioPath = match.groups?.audio
                 let src: string | null = null
@@ -347,39 +314,17 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
             div.addEventListener('contextmenu', this.contextMenu)
             div.className = 'lyrics-wrapper'
             // render lyrcis
-            let mdEl: HTMLSpanElement[] = await Promise.all(
-                lines.slice(1).map(async (line, index) => {
-                    const lineEl = div.createSpan()
-                    if (line) {
-                        const lrc = LyricsMarkdownRender.parseLrc(line)
-                        lineEl.className = 'lyrics-line'
-                        lineEl.dataset.lyid = `${index}`
-                        const timeEl = lineEl.createSpan()
-                        timeEl.setText(lrc.timestr || '')
-                        timeEl.className = 'lyrics-timestamp'
-                        timeEl.dataset.lyid = `${index}`
-                        if (lrc.timestamp) {
-                            const millis = Math.floor(lrc.timestamp * 1000)
-                            timeEl.dataset.time = `${millis}`
-                            lineEl.dataset.time = `${millis}`
-                        }
-                        lineEl.append(timeEl)
-                        await MarkdownRenderer.render(
-                            this.app,
-                            lrc.text,
-                            lineEl,
-                            this.path,
-                            this,
-                        )
-                    }
-                    return lineEl
-                }),
-            )
+            if (this.source.length > eol) {
+                this.lyricsRenderer.render(
+                    this.source.substring(eol + 1),
+                    div,
+                    this.path,
+                    this,
+                )
+            }
 
-            div.append(...mdEl)
+            this.container.append(fragment)
         }
-
-        this.container.append(fragment)
     }
 
     private binarySearch(arr: NodeListOf<HTMLElement>, time: number): number {
@@ -401,7 +346,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         left = mid + 1
                     }
                 } else {
-                    return mid + 1
+                    return arr.length - 1
                 }
             } else if (mt > time) {
                 if (mid >= 1) {

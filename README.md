@@ -16,9 +16,18 @@ Obsidian Community Plugins
 
 `obsidian://show-plugin?id=lyrics`
 
-### Basic
+### Basic Usage
 
-Include an audio source and [.lrc format](<https://en.wikipedia.org/wiki/LRC_(file_format)>) lyrics in the `lrc` code block.  
+Include an audio source and subtitle contents in the `lrc` code block.  
+
+**Supported Subtitle Format**
+
+- [LRC](https://en.wikipedia.org/wiki/LRC_(file_format))
+- [SRT](https://en.wikipedia.org/wiki/SubRip)
+
+
+**Specifying the Audio Source**
+
 You can specify the source of the audio file either as a filepath or as an internal link.
 
 1. Using an internal link source:
@@ -26,7 +35,7 @@ You can specify the source of the audio file either as a filepath or as an inter
 <pre>
 ```lrc
 source [[audio_file.mp3]]
-[00:01.00] your .lrc format contents
+[00:01.00] Your .lrc format contents
 [00:02.00] ....
 ```
 </pre>
@@ -36,8 +45,13 @@ source [[audio_file.mp3]]
 <pre>
 ```lrc
 source path/to/your_audio_file.mp3
-[00:01.00] your .lrc format contents
-[00:02.00] ....
+1
+00:02:16,612 --> 00:02:19,376
+Your .srt format contents
+
+2
+00:02:19,482 --> 00:02:21,609
+Hello ==Lyrics==
 ```
 </pre>
 
@@ -57,14 +71,16 @@ Customize your own styles by utilizing the CSS classes provided below.
 
 ```html
 <span class="lyrics-line" data-lyid="36" data-time="84160">
-	<span class="lyrics-timestamp" data-lyid="36" data-time="84160">01:24</span>
-	<p>Happy birthday.</p>
+    <span class="lyrics-timestamp" data-lyid="36" data-time="84160">01:24</span>
+    <div class="lyrics-text">
+        <p>Hello Lyrics</p>
+    </div>
 </span>
 ```
 
 -   `.lyrics-line`: the entire lyrics line.
 -   `.lyrics-line .lyrics-timestamp`: timestamp of the lyrics.
--   `.lyrics-line p`: text content of the lyrics.
+-   `.lyrics-line .lyrics-text`: text content of the lyrics.
 -   `.lyrics-highlighted`: mark the current highlighted lyrics.
 
 ---
