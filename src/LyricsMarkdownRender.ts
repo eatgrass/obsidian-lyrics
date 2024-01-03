@@ -76,16 +76,16 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         }
 
         if (!this.pauseHl) {
-            if (this.currentHL >= 0) {
-                let hlels = this.container.findAll('.lyrics-highlighted')
-                hlels.forEach((el) => {
+            //remove highlight
+            lyrics.forEach((el, index) => {
+                if (index !== hl) {
                     el.removeClass('lyrics-highlighted')
-                })
-            }
+                }
+            })
 
             if (hl >= 0) {
                 const hlel = lyrics.item(hl)
-                if (hlel) {
+                if (hlel && !hlel.hasClass('lyrics-highlighted')) {
                     hlel.addClass('lyrics-highlighted')
                     if (this.autoScroll) {
                         hlel.scrollIntoView({
