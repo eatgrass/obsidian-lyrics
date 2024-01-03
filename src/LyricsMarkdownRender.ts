@@ -89,10 +89,10 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
 
     private findParentData(element: HTMLElement | null) {
         while (element && element.className !== 'lyrics-wrapper') {
-            if (element.dataset && element.dataset['lyid']) {
+            if (element.dataset && element.dataset['offset']) {
                 return {
                     time: element.dataset['time'],
-                    lyid: element.dataset['lyid'],
+                    offset: element.dataset['offset'],
                 }
             }
             element = element.parentElement
@@ -141,8 +141,9 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         this.plugin.app.workspace.getActiveViewOfType(
                             MarkdownView,
                         )
-                    if (view && data?.lyid) {
+                    if (view && data?.offset) {
                         const state = view.getState()
+                        let [from, to] = data.offset.split(',')
                         state.mode = 'source'
                         await view.leaf.setViewState({
                             type: 'markdown',
@@ -152,33 +153,36 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         let start = 0
                         for (let i = 0; i < lineCount; i++) {
                             const lineText = view.editor.getLine(i)
+							// NOTE: can only calculate the first lrc code block position
                             if (lineText.includes('```lrc')) {
                                 start = i
                                 break
                             }
                         }
-                        let lineNumber = parseInt(data.lyid) + start
-                        let lineContent = view.editor.getLine(lineNumber)
+						let head = this.player ? 2 : 1
+                        let lineFrom = head + parseInt(from) + start
+                        let lineTo = head + parseInt(to) + start
+                        let lineContent = view.editor.getLine(lineTo)
                         view.editor.focus()
-                        view.editor.setCursor(lineNumber, 0)
+                        view.editor.setCursor(lineFrom, 0)
                         view.editor.setSelection(
                             {
-                                line: lineNumber,
+                                line: lineFrom,
                                 ch: 0,
                             },
                             {
-                                line: lineNumber,
+                                line: lineTo,
                                 ch: lineContent.length,
                             },
                         )
                         view.editor.scrollIntoView(
                             {
                                 from: {
-                                    line: lineNumber,
+                                    line: lineFrom,
                                     ch: 0,
                                 },
                                 to: {
-                                    line: lineNumber,
+                                    line: lineTo,
                                     ch: lineContent.length,
                                 },
                             },
@@ -244,9 +248,9 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     }
 
     async onload() {
-        // 分割
-        let lines = this.source.split(/r?\n/)
         let eol = this.source.indexOf('\n')
+
+		// first line: audio source
         if (this.source.length > 0 && eol >= 0) {
             let sourceLine = this.source.substring(0, eol)
             // render player

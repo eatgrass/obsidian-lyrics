@@ -27,10 +27,10 @@ export default class LrcRenderer extends AbstractLyricsRenderer {
     ) {
         let s = content.split(LrcRenderer.LRC_SPLITTER)
         if (s.length > 0) {
-            let rowCount = 2
+            let from = 0
             let head = s.shift()
             if (head) {
-                rowCount += head.split(/\r?\n/g).length - 1
+                from += head.split(/\r?\n/g).length - 1
                 await MarkdownRenderer.render(
                     this.app,
                     head,
@@ -44,14 +44,16 @@ export default class LrcRenderer extends AbstractLyricsRenderer {
             let mdEl: HTMLSpanElement[] = await Promise.all(
                 lines.map(async (parts, index) => {
                     let lrcLine = this.parseLrc(parts)
+                    let to = from + lrcLine.rows - 1
                     let r = this.renderLine(
                         container,
                         lrcLine,
-                        rowCount,
+                        from,
+                        to,
                         path,
                         component,
                     )
-                    rowCount += lrcLine.rows
+                    from = to
                     return r
                 }),
             )

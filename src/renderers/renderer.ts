@@ -28,7 +28,8 @@ export abstract class AbstractLyricsRenderer {
     protected async renderLine(
         container: HTMLDivElement,
         line: LyricsLine,
-        index: number,
+        from: number,
+        to: number,
         path: string,
         component: Component,
     ): Promise<HTMLElement> {
@@ -36,11 +37,11 @@ export abstract class AbstractLyricsRenderer {
 
         if (line) {
             lineEl.addClass('lyrics-line')
-            lineEl.dataset.lyid = `${index}`
+            lineEl.dataset.offset = `${from},${to}`
             const timeEl = lineEl.createSpan()
             timeEl.setText(line.timestr || '')
             timeEl.addClass('lyrics-timestamp')
-            timeEl.dataset.lyid = `${index}`
+            timeEl.dataset.offset = `${from},${to}`
             if (line.timestamp) {
                 const millis = Math.floor(line.timestamp)
                 timeEl.dataset.time = `${millis}`

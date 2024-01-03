@@ -25,7 +25,6 @@ export default class SrtRenderer extends AbstractLyricsRenderer {
             t.push(p ? p : 0)
         }
 
-        // hours + minutes + seconds + ms
         return t
     }
 
@@ -37,11 +36,10 @@ export default class SrtRenderer extends AbstractLyricsRenderer {
     ) {
         if (content.length > 0) {
             let blocks = content.split(SrtRenderer.SRT_SPLITTER)
-
-            let rowCount = 2
+            let from = 0
             let head = blocks.shift()
             if (head) {
-                rowCount += head.split(/\r?\n/g).length - 1
+                from += head.split(/\r?\n/g).length - 1
                 await MarkdownRenderer.render(
                     this.app,
                     head,
@@ -53,7 +51,7 @@ export default class SrtRenderer extends AbstractLyricsRenderer {
 
             if (blocks.length > 0) {
                 let mdEl = await Promise.all(
-                    this.chunk(blocks, 4).map((parts, index) => {
+                    this.chunk(blocks, 4).map((parts) => {
                         let t = this.parseTime(parts[1].trim())
                         let min = t[0] * 60 + t[1]
                         let sec = t[2]
@@ -69,16 +67,17 @@ export default class SrtRenderer extends AbstractLyricsRenderer {
                             text: parts[3] ? parts[3].trim() : '',
                             rows: parts[3].split(/\r?\n/g).length - 2,
                         } as LyricsLine
-                        rowCount += 2
+                        // from += 2
+                        let to = from + line.rows + 1
                         let r = this.renderLine(
                             container,
                             line,
-                            rowCount,
+                            from,
+                            to,
                             path,
                             component,
                         )
-                        rowCount += line.rows
-
+                        from = to + 1
                         return r
                     }),
                 )
