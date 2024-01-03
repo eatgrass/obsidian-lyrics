@@ -1,4 +1,3 @@
-import { chunk } from 'lodash'
 import { MarkdownRenderer, type App, type Component } from 'obsidian'
 import {
     DEFAULT_LRC,
@@ -16,7 +15,7 @@ export default class LrcRenderer extends AbstractLyricsRenderer {
     public match(content: string): number {
         const s = content.split(LrcRenderer.LRC_SPLITTER)
         s.shift()
-        return chunk(s, 7).length
+        return this.chunk(s, 7).length
     }
 
     public async render(
@@ -39,7 +38,7 @@ export default class LrcRenderer extends AbstractLyricsRenderer {
                     component,
                 )
             }
-            let lines = chunk(s, 7)
+            let lines = this.chunk(s, 7)
 
             let mdEl: HTMLSpanElement[] = await Promise.all(
                 lines.map(async (parts, index) => {

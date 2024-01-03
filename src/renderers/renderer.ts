@@ -1,5 +1,5 @@
 import { MarkdownRenderer, type App, type Component } from 'obsidian'
-import { chunk } from 'lodash'
+import chunk from 'lodash/chunk'
 
 export type LyricsLine = {
     timestamp?: number // milliseconds
