@@ -56,6 +56,9 @@ export abstract class AbstractLyricsRenderer {
                 path,
                 component,
             )
+
+            const mark = lineEl.find('mark')
+            lineEl.dataset.mark = mark ? 'true' : 'false'
         }
 
         return lineEl

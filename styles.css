@@ -38,13 +38,17 @@ If your plugin does not need CSS, delete this file.
 }
 
 .lyrics-text {
-	display: flex;
-	flex-direction: column;
-	flex: 1;
-	padding: 0 0.8rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 0 0.8rem;
 }
 
-.lyrics-highlighted .lyrics-text{
+.lyrics-highlighted .lyrics-text {
     background-color: var(--text-selection);
     border-radius: 5px;
+}
+
+.lyrics-show-marked .lyrics-line[data-mark='false'] {
+    display: none;
 }

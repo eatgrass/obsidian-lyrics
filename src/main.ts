@@ -9,6 +9,10 @@ export default class LyricsPlugin extends Plugin {
         return this.settings?.getSettings() || DEFAULT_SETTINGS
     }
 
+    public updateSettings(newSettings: Partial<Settings>) {
+        this.settings?.updateSettings(newSettings)
+    }
+
     async onload() {
         const settings = { ...DEFAULT_SETTINGS, ...(await this.loadData()) }
         this.settings = new LyricsSettings(this, settings)

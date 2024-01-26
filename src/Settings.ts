@@ -4,10 +4,12 @@ import LyrcisPlugin from 'main'
 export interface Settings {
     autoScroll: boolean
     sentenceMode: boolean
+    onlyShowMarked: boolean
 }
 export const DEFAULT_SETTINGS: Settings = {
     autoScroll: true,
     sentenceMode: false,
+    onlyShowMarked: false,
 }
 
 export default class LyricsSettings extends PluginSettingTab {

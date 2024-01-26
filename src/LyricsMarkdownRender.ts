@@ -21,10 +21,12 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
     private currentHL: number = -1
     private path: string
     private plugin: LyricsPlugin
-    private autoScroll: boolean
-    private sentenceMode: boolean
     private lyricsRenderer: LyricsRenderer
     private pauseHl: boolean = false
+    private sentenceMode: boolean
+
+    private autoScroll: boolean
+    private onlyShowMarked: boolean = false
 
     constructor(
         plugin: LyricsPlugin,
@@ -40,6 +42,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
         this.path = ctx.sourcePath
         this.autoScroll = this.plugin.getSettings().autoScroll
         this.sentenceMode = this.plugin.getSettings().sentenceMode
+        this.onlyShowMarked = this.plugin.getSettings().onlyShowMarked
         this.lyricsRenderer = new LyricsRenderer(plugin.app)
     }
 
@@ -244,6 +247,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                         })
                     }
                     this.autoScroll = !this.autoScroll
+                    this.plugin.updateSettings({ autoScroll: this.autoScroll })
                 })
         })
 
@@ -252,10 +256,33 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
                 .setChecked(this.sentenceMode)
                 .onClick(async () => {
                     this.sentenceMode = !this.sentenceMode
+                    this.plugin.updateSettings({
+                        sentenceMode: this.sentenceMode,
+                    })
+                })
+        })
+
+        menu.addItem((item) => {
+            item.setTitle('Only show marked')
+                .setChecked(this.onlyShowMarked)
+                .onClick(async () => {
+                    this.onlyShowMarked = !this.onlyShowMarked
+                    this.plugin.updateSettings({
+                        onlyShowMarked: this.onlyShowMarked,
+                    })
+                    this.applyOnlyShowMarked()
                 })
         })
 
         menu.showAtMouseEvent(e)
+    }
+
+    private applyOnlyShowMarked() {
+        if (this.onlyShowMarked) {
+            this.container.addClass('lyrics-show-marked')
+        } else {
+            this.container.removeClass('lyrics-show-marked')
+        }
     }
 
     async onload() {
@@ -338,6 +365,7 @@ export default class LyricsMarkdownRender extends MarkdownRenderChild {
             }
 
             this.container.append(fragment)
+            this.applyOnlyShowMarked()
         }
     }
 

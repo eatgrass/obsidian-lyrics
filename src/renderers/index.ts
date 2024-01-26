@@ -24,9 +24,9 @@ export default class LyricsRenderer extends AbstractLyricsRenderer {
     ) {
         let parser = this.resolveParser(content)
         if (parser[0]) {
-            parser[0].render(content, container, path, component)
+            await parser[0].render(content, container, path, component)
         } else {
-            MarkdownRenderer.render(
+            await MarkdownRenderer.render(
                 this.app,
                 content,
                 container,
